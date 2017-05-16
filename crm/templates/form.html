@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block title %}{{form_obj.action.name}}{% endblock %}
+{% block subtitle %}{{form_obj.title}} {% endblock %}
+
+{% block content %}
+<p>{{form_obj.action.date}}</p>
+<p>{{form_obj.description}}</p>
+<form method="post">
+  {% csrf_token %}
+  {{form}}
+  <p>
+    <input type="submit" class="button" value="Submit">
+  </p>
+</form>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Add activists to {{action.name}}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Home</a>
+&rsaquo; <a href="{% url 'admin:app_list' 'crm' %}">Crm</a>
+&rsaquo; <a href="{% url 'admin:crm_action_changelist' %}">Actions</a>
+&rsaquo; <a href="{% url 'admin:crm_action_change' action.id %}">{{action}}</a>
+&rsaquo; <a href="#">Add Activists</a>
+</div>
+{% endblock %}
+
+{% block extrahead %}
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  {{form.media}}
+{% endblock %}
+
+{% block content %}
+<h1>Add activists to {{action.name}}</h1>
+<form method="POST">
+  {% csrf_token %}
+  {{form}}
+  <table>
+    <tr>
+      <td colspan="2">Name</th>
+      <td>Email</th>
+      <td>Previous actions</th>
+    </tr>
+    {% for activist in results %}
+    <tr>
+      <td><input type="checkbox" name="selected" value="{{activist.id}}" /></td>
+      <td>{{activist.name}}</td>
+      <td>{{activist.email}}</td>
+      <td>{{activist.signups.attended|length}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <input type="submit" class="button" value="Submit" />
+</form>
+{% endblock %}

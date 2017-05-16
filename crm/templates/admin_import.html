@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Import activists{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Home</a>
+&rsaquo; <a href="{% url 'admin:app_list' 'crm' %}">Crm</a>
+&rsaquo; <a href="{% url 'admin:crm_activist_changelist' %}">Activists</a>
+&rsaquo; <a href="#">Import from CSV</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Add activists to {{action.name}}</h1>
+<p>Paste the contents of a .csv file here. It should have at least one of these
+columns:
+<ul>
+  <li>full_address</li>
+  <li>zipcode</li>
+  <li>city</li>
+</ul>
+<p>The first non-empty field found will be used as each activist's address.
+<form method="POST">
+  {% csrf_token %}
+  {{form}}
+  <input type="submit" class="button" value="Submit" />
+</form>
+{% endblock %}
+

@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Send email for {{action.name}}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Home</a>
+&rsaquo; <a href="{% url 'admin:app_list' 'crm' %}">Crm</a>
+&rsaquo; <a href="{% url 'admin:crm_action_changelist' %}">Actions</a>
+&rsaquo; <a href="{% url 'admin:crm_action_change' action.id %}">{{action}}</a>
+&rsaquo; <a href="#">Send Email</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Email for {{action.name}}</h1>
+<p>From: {{current_user.email}}</p>
+<form method="POST">
+  {% csrf_token %}
+  {{form}}
+  <input type="submit" class="button" value="Submit" />
+</form>
+{% endblock %}

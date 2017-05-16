@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% block title %}Actions{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="large-12 columns">
+    <table>
+      {% for form in forms %}
+      <tr>
+        <td>{{form.action.name}}</td>
+        <td><a href="{% url 'form' form_id=form.id %}">{{form.title}}</a></td>
+        <td>{{form.action.date}}</td>
+        <td>{{form.action.signups.confirmed|length}} RSVP'd</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
