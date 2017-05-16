@@ -10,53 +10,11 @@ from django.conf.urls import url
 from django.shortcuts import render
 from django.contrib import admin
 from django.contrib import messages
-from . import models, forms
+from . import models, forms, importing
 from django.core.mail import send_mail
-from geopy.geocoders import GoogleV3
 from django.conf import settings
 import StringIO
 
-__addr_cache = {}
-
-def translate_google_result(res):
-    ret = {}
-    for prop in res['address_components']:
-        if 'locality' in prop['types']:
-            ret['locality'] = prop['long_name']
-        if 'administrative_area_level_1' in prop['types']:
-            ret['state'] = prop['long_name']
-        if 'country' in prop['types']:
-            ret['country'] = prop['long_name']
-        if 'postal_code' in prop['types']:
-            ret['postal_code'] = prop['long_name']
-    ret['raw'] = res['formatted_address']
-    return ret
-
-def address_from_row(row):
-    geocoder = GoogleV3(settings.GOOGLE_MAPS_API_KEY)
-    addr_to_geocode = ""
-    if 'full_address' in row and len(row['full_address']) > 0:
-        addr_to_geocode = row['address']
-    elif 'zipcode' in row and len(row['zipcode']) > 0:
-        addr_to_geocode = row['zipcode']
-    elif 'city' in row and len(row['city']) > 0:
-        addr_to_geocode = row['city']
-    if addr_to_geocode is None:
-        logging.debug("Could not find suitable geocode field")
-        return None
-    if addr_to_geocode not in __addr_cache:
-        geocoded = None
-        try:
-            geocoded = geocoder.geocode(addr_to_geocode)
-        except:
-            pass
-        if geocoded:
-            ret = translate_google_result(geocoded.raw)
-            __addr_cache[addr_to_geocode] = ret
-        else:
-            __addr_cache[addr_to_geocode] = addr_to_geocode
-    logging.debug("%s -> %r", addr_to_geocode, __addr_cache[addr_to_geocode])
-    return __addr_cache[addr_to_geocode]
 
 class SignupInline(admin.TabularInline):
     model = models.Signup
@@ -82,16 +40,7 @@ class ActivistAdmin(admin.ModelAdmin):
             form = forms.ImportForm(request.POST)
             if form.is_valid():
                 f = StringIO.StringIO(form.cleaned_data['csv_data'])
-                reader = csv.DictReader(f)
-                imported_count = 0
-                logging.debug("Found fields: %r", reader.fieldnames)
-                for row in reader:
-                    geocoded_addr = address_from_row(row)
-                    activist, created = models.Activist.objects.update_or_create(email=row['email'],
-                            defaults={'name': "%s %s"%(row['first_name'],
-                                row['last_name']), 'address': geocoded_addr})
-                    if created:
-                        imported_count += 1
+                imported_count = importing.import_file(f)
                 messages.success(request, "%s activists imported."%(imported_count))
         else:
             form = forms.ImportForm()
