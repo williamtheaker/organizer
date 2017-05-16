@@ -144,6 +144,7 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 ANYMAIL = {
     'MAILGUN_API_KEY': os.environ.get('MAILGHUN_API_KEY', None),
+    'MAILGUN_SENDER_DOMAIN': os.environ.get('MAILGUN_DOMAIN', None)
 }
 
 EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
