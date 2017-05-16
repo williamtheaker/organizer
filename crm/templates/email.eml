@@ -2,4 +2,4 @@
 --------
 This email was sent with EBF Organizer.
 View the {{signup.action.name}} action for {{signup.date}} on the web:
-https://ebf-organizer.herokuapp.com/{{signup.action.get_absolute_url}}
+http://organizing.eastbayforward.org{{signup.action.get_absolute_url}}
