@@ -43,7 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'anymail',
     'address',
+    'markdownify',
     'crm',
+]
+
+MARKDOWNIFY_WHITELIST_TAGS = [
+    'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol', 'p',
+    'string', 'ul', 'img'
 ]
 
 MIDDLEWARE = [
