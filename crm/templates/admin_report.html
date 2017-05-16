@@ -24,6 +24,11 @@
     {% endfor %}
   </tr>
   {% for signup in action.signups.all %}
+    {% ifchanged signup.state_name %}
+    <tr>
+      <th colspan="{{action.fields.all|length|add:"3"}}">{{signup.state_name}}</th>
+    </tr>
+    {% endifchanged %}
     <tr>
       <td>{{signup.activist.name}}</td>
       <td>{{signup.activist.email}}</td>

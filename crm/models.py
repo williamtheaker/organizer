@@ -106,6 +106,10 @@ class Signup(models.Model):
     objects = SignupManager()
 
     @property
+    def state_name(self):
+        return SignupState(int(self.state)).name
+
+    @property
     def responses(self):
         return FormResponse.objects.filter(field__form__action=self.action.id,
                 activist=self.activist)
