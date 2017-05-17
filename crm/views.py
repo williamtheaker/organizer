@@ -22,12 +22,13 @@ def form(request, form_id):
     if request.method == 'POST':
         form = forms.FormForm(form_obj, request.POST)
         if form.is_valid():
+            addr = form.cleaned_data.get('address', '')
+            if addr is None:
+                addr = ''
             signup_activist, _ = models.Activist.objects.get_or_create(email=form.cleaned_data['email'],
-                    defaults={'name': form.cleaned_data['name'], 'address':
-                        form.cleaned_data.get('address', None)})
+                    defaults={'name': form.cleaned_data['name'], 'address': addr})
             signup = models.Signup.objects.update_or_create(activist=signup_activist,
-                    action=form_obj.action, defaults={'state':
-                        form_obj.next_state})
+                    action=form_obj.action, defaults={'state': form_obj.next_state})
             logging.debug("Updating signup: %s", signup )
 
             values = []
