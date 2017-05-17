@@ -27,6 +27,17 @@ class ActivistAdmin(admin.ModelAdmin):
         SignupInline
     ]
 
+    search_fields = [
+        'name', 'email', 'address__raw', 'address__locality__name'
+    ]
+
+    list_display = [
+        'name', 'email', 'address', 'action_count'
+    ]
+
+    def action_count(self, obj):
+        return len(obj.signups.attended())
+
     def get_urls(self):
         urls = super(ActivistAdmin, self).get_urls()
         my_urls = [

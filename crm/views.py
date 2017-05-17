@@ -24,7 +24,7 @@ def form(request, form_id):
         if form.is_valid():
             signup_activist, _ = models.Activist.objects.get_or_create(email=form.cleaned_data['email'],
                     defaults={'name': form.cleaned_data['name'], 'address':
-                        form.cleaned_data['address']})
+                        form.cleaned_data.get('address', None)})
             signup = models.Signup.objects.update_or_create(activist=signup_activist,
                     action=form_obj.action, defaults={'state':
                         form_obj.next_state})
