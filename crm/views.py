@@ -13,8 +13,9 @@ def action(request, action_id):
     action = models.Action.objects.all()
     return render(request, 'action.html', {'action': action})
 
-def thanks(request):
-    return render(request, 'thanks.html')
+def thanks(request, form_id):
+    form_obj = models.Form.objects.get(pk=form_id)
+    return render(request, 'thanks.html', {'form_obj': form_obj})
 
 def form(request, form_id):
     form_obj = models.Form.objects.get(pk=form_id)
@@ -36,7 +37,7 @@ def form(request, form_id):
                 models.FormResponse.objects.update_or_create(field=field,
                         activist=signup_activist,
                         defaults={'value':form.cleaned_data[v]})
-            return redirect('thanks')
+            return redirect('thanks', form_id=form_id)
     else:
         form = forms.FormForm(form_obj)
     return render(request, 'form.html', {'form': form, 'form_obj': form_obj})
