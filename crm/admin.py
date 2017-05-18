@@ -13,6 +13,7 @@ from django.contrib import messages
 from . import models, forms, importing
 from django.core.mail import send_mail
 from django.conf import settings
+from address.models import Locality
 import StringIO
 
 
@@ -21,6 +22,46 @@ class SignupInline(admin.TabularInline):
 
 class FormInline(admin.TabularInline):
     model = models.Form
+
+class ActionFilter(admin.SimpleListFilter):
+    title = 'Action'
+    parameter_name = 'action'
+
+    def lookups(self, request, model_admin):
+        ret = []
+        for a in models.Action.objects.all():
+            ret.append((a.id, a.name))
+        return ret
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(signups__action_id=self.value())
+        return queryset
+
+class SignupFilter(admin.SimpleListFilter):
+    title = 'Signup State'
+    parameter_name = 'signup_state'
+
+    def lookups(self, request, model_admin):
+        return map(lambda x: (x.value, x.name), models.SignupState)
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(signups__state=self.value())
+        return queryset
+
+class CityFilter(admin.SimpleListFilter):
+    title = 'City'
+    parameter_name = 'city'
+
+    def lookups(self, request, model_admin):
+        return map(lambda x: (x.id, x.name),
+                Locality.objects.all().order_by('name'))
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(address__locality_id=self.value())
+        return queryset
 
 class ActivistAdmin(admin.ModelAdmin):
     inlines = [
@@ -31,9 +72,37 @@ class ActivistAdmin(admin.ModelAdmin):
         'name', 'email', 'address__raw', 'address__locality__name'
     ]
 
+    list_filter = [
+        ActionFilter,
+        SignupFilter,
+        CityFilter
+    ]
+
     list_display = [
         'name', 'email', 'address', 'action_count'
     ]
+
+    def get_actions(self, request):
+        actions = super(ActivistAdmin, self).get_actions(request)
+        for a in models.Action.objects.all():
+            def action_processor(modeladmin, request, queryset):
+                for f in queryset.all():
+                    models.Signup.objects.get_or_create(activist=f, action=a,
+                            defaults={'state':
+                                models.SignupState.prospective.value})
+            action_processor.short_description = "Add to action: %s"%(a.name)
+            actions['add_action_%s'%a.id] = (action_processor,
+                    'add_action_%s'%a.id, action_processor.short_description)
+        for c in models.Campaign.objects.all():
+            def campaign_processor(modeladmin, request, queryset):
+                for f in queryset.all():
+                    models.CampaignMember.objects.get_or_create(activist=f,
+                            campaign=c,
+                            defaults={'state':models.CampaignMembershipState.prospective.value})
+            campaign_processor.short_description = "Add to campaign: %s"%(c.name)
+            actions['add_campaign_%s'%a.id] = (campaign_processor,
+                    'add_campaign_%s'%a.id, campaign_processor.short_description)
+        return actions
 
     def action_count(self, obj):
         return len(obj.signups.attended())
@@ -181,3 +250,5 @@ admin.site.register(models.FormField)
 admin.site.register(models.Signup)
 admin.site.register(models.FormResponse)
 admin.site.register(models.Activist, ActivistAdmin)
+admin.site.register(models.Campaign)
+admin.site.register(models.CampaignMember)

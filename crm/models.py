@@ -12,7 +12,7 @@ class ChoiceEnum(Enum):
     def choices(cls):
         members = inspect.getmembers(cls, lambda m: not(inspect.isroutine(m)))
         props = [m for m in members if not(m[0][:2] == '__')]
-        choices = tuple([(str(p[1].value), p[0]) for p in props])
+        choices = tuple([(int(p[1].value), p[0]) for p in props])
         return choices
 
 class SignupState(ChoiceEnum):
@@ -21,6 +21,12 @@ class SignupState(ChoiceEnum):
     attended = 2
     noshow = 3
     cancelled = 4
+
+class CampaignMembershipState(ChoiceEnum):
+    prospective = 0
+    active = 1
+    inactive = 2
+    removed = 3
 
 class FormControlType(ChoiceEnum):
     text = 0
@@ -38,9 +44,26 @@ class Activist(models.Model):
     def __unicode__(self):
         return self.name
 
+class Campaign(models.Model):
+    name = models.CharField(max_length=200)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return self.name
+
+class CampaignMember(models.Model):
+    activist = models.ForeignKey(Activist, related_name='campaign_memberships')
+    campaign = models.ForeignKey(Campaign, related_name='campaign_memberships')
+    state = models.IntegerField(choices=CampaignMembershipState.choices())
+
+    def __unicode__(self):
+        return "%s -> %s (%s)"%(self.activist, self.campaign,
+                CampaignMembershipState(self.state).name)
+
 class Action(models.Model):
     name = models.CharField(max_length=200)
     date = models.DateTimeField()
+    campaign = models.ForeignKey(Campaign)
 
     @property
     def fields(self):
@@ -57,7 +80,7 @@ class Form(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     active = models.BooleanField()
-    next_state = models.CharField(max_length=1, choices=SignupState.choices())
+    next_state = models.IntegerField(choices=SignupState.choices())
 
     def get_absolute_url(self):
         return reverse('form', args=[self.id])
@@ -68,7 +91,7 @@ class Form(models.Model):
 class FormField(models.Model):
     form = models.ForeignKey(Form, related_name='fields')
     name = models.CharField(max_length=200)
-    control_type = models.CharField(max_length=1, choices=FormControlType.choices())
+    control_type = models.IntegerField(choices=FormControlType.choices())
     control_data = models.TextField(blank=True)
 
     @property
@@ -101,13 +124,13 @@ class SignupManager(models.Manager):
 class Signup(models.Model):
     activist = models.ForeignKey(Activist, related_name='signups')
     action = models.ForeignKey(Action, related_name='signups')
-    state = models.CharField(max_length=1, choices=SignupState.choices())
+    state = models.IntegerField(choices=SignupState.choices())
 
     objects = SignupManager()
 
     @property
     def state_name(self):
-        return SignupState(int(self.state)).name
+        return SignupState(self.state).name
 
     @property
     def responses(self):
