@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import django.db.models.deletion
 
+def create_default_campaign(apps, schema_editor):
+    Campaign = apps.get_model("crm", "Campaign")
+    Campaign.objects.create(name="Unnamed Campaign")
 
 class Migration(migrations.Migration):
 
@@ -30,10 +33,11 @@ class Migration(migrations.Migration):
                 ('campaign', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='campaign_memberships', to='crm.Campaign')),
             ],
         ),
+        migrations.RunPython(create_default_campaign),
         migrations.AddField(
             model_name='action',
             name='campaign',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='crm.Campaign'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='crm.Campaign'),
             preserve_default=False,
         ),
     ]
