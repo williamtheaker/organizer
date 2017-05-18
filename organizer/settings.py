@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'anymail',
     'address',
+    'rest_framework',
     'markdownify',
     'webpack_loader',
     'mailchimp',
@@ -162,3 +163,10 @@ GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', None)
 MAILCHIMP_USERNAME=os.environ.get("MAILCHIMP_USERNAME", None)
 MAILCHIMP_SECRET_KEY=os.environ.get("MAILCHIMP_SECRET_KEY", None)
 CICERO_API_KEY=os.environ.get('CICERO_API_KEY', None)
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAdminUser',
+    ],
+    'PAGE_SIZE': 100
+}

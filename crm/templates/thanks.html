@@ -1,8 +1,0 @@
-{% extends 'layout.html' %}
-{% block title %}{{form_obj.action.name}}{% endblock %}
-{% block subtitle %}{{form_obj.title}}{% endblock %}
-{% block content %}
-<h1>Thanks!</h1>
-<p>Your response has been recorded.
-<p><a href="{% url 'form' form_id=form_obj.id %}">Fill it out again</a></p>
-{% endblock %}

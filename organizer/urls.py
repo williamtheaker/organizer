@@ -15,8 +15,18 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from crm import views
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'actions', views.ActionViewSet)
+router.register(r'forms', views.FormViewSet)
+router.register(r'fields', views.FieldViewSet)
+router.register(r'campaigns', views.CampaignViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^crm/', include('crm.urls'))
+    url(r'^api/', include(router.urls)),
+    url(r'^', views.index)
+    #url(r'^crm/', include('crm.urls')),
 ]
