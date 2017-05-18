@@ -1,15 +1,10 @@
 {% load static %}
+{% load render_bundle from webpack_loader %}
 <!DOCTYPE html>
 <html>
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie-edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/css/foundation.min.css"
-    integrity="sha256-itWEYdFWzZPBG78bJOOiQIn06QCgN/F0wMDcC4nOhxY="
-    crossorigin="anonymous" />
-  <link rel="stylesheet"
-    href="{% static 'app.css' %}" />
   <script
     src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script
@@ -19,31 +14,7 @@
   {% block extrahead %}{% endblock %}
   <title>East Bay Forward</title>
   <body>
-    <div class="row">
-      <div class="small-12 columns">
-{% block canvas %}
-<header class="row">
-  <div class="small-10 columns mastiff">
-    <h1>{% block title %}{% endblock %}</h1>
-    <h2>{% block subtitle %}{% endblock %}</h2>
-  </div>
-  <div class="small-2 columns logo"><a href="/">East Bay Forward</a></div>
-</header>
-<div class="row canvas">
-  <div class="small-12 columns">
-{% block content %}
-{% endblock %}
-  </div>
-</div>
-{% endblock %}
-      </div>
-    </div>
-    <footer>
-      <div class="row">
-        <div class="small-12 columns">
-          Built with love in Oakland, CA
-        </div>
-      </div>
-    </footer>
+    <div id="container"></div>
   </body>
+  {% render_bundle 'main' %}
 </html>
