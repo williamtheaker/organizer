@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'markdownify',
     'mailchimp',
     'crm',
+    'districting'
 ]
 
 MARKDOWNIFY_WHITELIST_TAGS = [
@@ -152,3 +153,4 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', None)
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', None)
 MAILCHIMP_USERNAME=os.environ.get("MAILCHIMP_USERNAME", None)
 MAILCHIMP_SECRET_KEY=os.environ.get("MAILCHIMP_SECRET_KEY", None)
+CICERO_API_KEY=os.environ.get('CICERO_API_KEY', None)

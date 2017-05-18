@@ -14,6 +14,7 @@ from . import models, forms, importing
 from django.core.mail import send_mail
 from django.conf import settings
 from address.models import Locality
+from districting import models as districting_models
 import StringIO
 
 
@@ -22,6 +23,9 @@ class SignupInline(admin.TabularInline):
 
 class FormInline(admin.TabularInline):
     model = models.Form
+
+class CampaignMemberInline(admin.TabularInline):
+    model = models.CampaignMember
 
 class ActionFilter(admin.SimpleListFilter):
     title = 'Action'
@@ -38,16 +42,19 @@ class ActionFilter(admin.SimpleListFilter):
             return queryset.filter(signups__action_id=self.value())
         return queryset
 
-class SignupFilter(admin.SimpleListFilter):
-    title = 'Signup State'
-    parameter_name = 'signup_state'
+class CampaignFilter(admin.SimpleListFilter):
+    title = 'Campaign'
+    parameter_name = 'campaign'
 
     def lookups(self, request, model_admin):
-        return map(lambda x: (x.value, x.name), models.SignupState)
+        ret = []
+        for c in models.Campaign.objects.all():
+            ret.append((c.id, c.name))
+        return ret
 
     def queryset(self, request, queryset):
         if self.value() is not None:
-            return queryset.filter(signups__state=self.value())
+            return queryset.filter(campaign_memberships__campaign_id=self.value())
         return queryset
 
 class CityFilter(admin.SimpleListFilter):
@@ -63,6 +70,19 @@ class CityFilter(admin.SimpleListFilter):
             return queryset.filter(address__locality_id=self.value())
         return queryset
 
+class DistrictFilter(admin.SimpleListFilter):
+    title = 'District'
+    parameter_name = 'district'
+
+    def lookups(self, request, model_admin):
+        return map(lambda x: (x.id, x.label+", "+districting_models.DistrictType(x.type).name),
+                districting_models.District.objects.all().order_by('label'))
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(district_memberships__district_id=self.value())
+        return queryset
+
 class ActivistAdmin(admin.ModelAdmin):
     inlines = [
         SignupInline
@@ -74,8 +94,9 @@ class ActivistAdmin(admin.ModelAdmin):
 
     list_filter = [
         ActionFilter,
-        SignupFilter,
-        CityFilter
+        CampaignFilter,
+        CityFilter,
+        DistrictFilter
     ]
 
     list_display = [
@@ -244,11 +265,16 @@ class FormAdmin(admin.ModelAdmin):
         FieldInline
     ]
 
+class CampaignAdmin(admin.ModelAdmin):
+    inlines = [
+        CampaignMemberInline
+    ]
+
 admin.site.register(models.Action, ActionAdmin)
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormField)
 admin.site.register(models.Signup)
 admin.site.register(models.FormResponse)
 admin.site.register(models.Activist, ActivistAdmin)
-admin.site.register(models.Campaign)
+admin.site.register(models.Campaign, CampaignAdmin)
 admin.site.register(models.CampaignMember)
