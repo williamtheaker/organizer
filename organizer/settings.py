@@ -174,6 +174,5 @@ REST_FRAMEWORK = {
 }
 
 RAVEN_CONFIG = {
-    'dsn': os.environ.get("SENTRY_DSN"),
-    'release': raven.fetch_git_sha(os.path.dirname(os.pardir))
+    'dsn': os.environ.get("SENTRY_DSN")
 }
