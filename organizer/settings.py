@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import raven
 import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'markdownify',
     'webpack_loader',
+    'raven.contrib.django.raven_compat',
     'mailchimp',
     'crm',
     'districting'
@@ -169,4 +171,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAdminUser',
     ],
     'PAGE_SIZE': 100
+}
+
+RAVEN_CONFIG = {
+    'dsn': os.environ.get("SENTRY_DSN"),
+    'release': raven.fetch_git_sha(os.path.dirname(os.pardir))
 }
