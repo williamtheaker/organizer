@@ -15,6 +15,7 @@ class FieldSerializer(serializers.HyperlinkedModelSerializer):
 
 class FormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
+    action = ActionSerializer()
     class Meta:
         model = models.Form
         fields = ('fields', 'action', 'title', 'description')
