@@ -25,27 +25,35 @@ class FormViewSet(viewsets.ModelViewSet):
     def submit_response(self, request, pk=None):
         form_obj = self.get_object()
         fields = models.FormField.objects.filter(form=form_obj).all()
-        signup_activist, _ = models.Activist.objects.get_or_create(
-                email = request.data['email'],
-                defaults = {
-                    'name': request.data['name'],
-                    'address': request.data['address']
-                })
-        signup, _ = models.Signup.objects.update_or_create(
-                activist=signup_activist,
-                action=form_obj.action,
-                defaults={'state': form_obj.next_state})
-        logging.debug("Updating signup: %s", signup )
-        values = []
-        for field in fields:
-            field_input_name = "input_%s"%(field.id)
-            field_value = request.data.get(field_input_name, '')
-            logging.debug("%s = %s", field.name, field_value)
-            models.FormResponse.objects.update_or_create(
-                    field = field,
-                    activist = signup_activist,
-                    defaults = {'value': field_value})
-        return Response()
+        serializer = serializers.ResponseSerializer(data={
+            'email': request.data['email'],
+            'name': request.data.get('name', None),
+            'address': request.data.get('address', None)
+        })
+        if serializer.is_valid():
+            signup_activist, _ = models.Activist.objects.get_or_create(
+                    email = request.data['email'],
+                    defaults = {
+                        'name': request.data.get('name', None),
+                        'address': request.data.get('address', '')
+                    })
+            signup, _ = models.Signup.objects.update_or_create(
+                    activist=signup_activist,
+                    action=form_obj.action,
+                    defaults={'state': form_obj.next_state})
+            logging.debug("Updating signup: %s", signup )
+            values = []
+            for field in fields:
+                field_input_name = "input_%s"%(field.id)
+                field_value = request.data.get(field_input_name, '')
+                logging.debug("%s = %s", field.name, field_value)
+                models.FormResponse.objects.update_or_create(
+                        field = field,
+                        activist = signup_activist,
+                        defaults = {'value': field_value})
+            return Response()
+        else:
+            return Response({'errors': serializer.errors}, 400)
 
 class FieldViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)

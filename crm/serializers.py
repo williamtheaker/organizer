@@ -24,3 +24,8 @@ class CampaignSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Campaign
         fields = ('name', 'id')
+
+class ResponseSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    name = serializers.CharField(allow_blank=True)
+    address = serializers.CharField(allow_blank=True)
