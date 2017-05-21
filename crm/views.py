@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import logging
 from django.shortcuts import render, redirect
+from django.conf import settings
 from . import models, forms
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -58,7 +59,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
 
 def index(request):
     forms = models.Form.objects.all()
-    return render(request, 'index.html', {'forms':forms})
+    return render(request, 'index.html', {'forms':forms, 'settings':settings})
 
 def action(request, action_id):
     action = models.Action.objects.all()
