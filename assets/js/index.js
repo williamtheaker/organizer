@@ -4,6 +4,8 @@ import app_css from '../scss/app.scss'
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import axios from 'axios'
 import { titles } from './TitleManager'
+import { Form, Text, Checkbox, NestedForm } from 'react-form'
+import _ from 'underscore'
 
 function getCookie(name) {
     var cookieValue = null;
@@ -82,7 +84,8 @@ class FormView extends React.Component {
         description: '',
         fields: []
       },
-      submitted: false
+      submitted: false,
+      serverError: undefined
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -101,17 +104,36 @@ class FormView extends React.Component {
       });
   }
 
-  handleSubmit(event) {
-    event.preventDefault();
-    var data = {}
-    $(event.target.elements).each((idx, field) => {
-      data[field.name] = field.value;
-    });
+  handleSubmit(values) {
+    console.log('submit!', values);
+    var data = {
+      name: values.name,
+      email: values.email,
+      address: values.address
+    };
+    for(var fieldID in values.fields) {
+      if (fieldID) {
+        data['input_'+fieldID] = values.fields[fieldID];
+      }
+    }
     axios.post('/api/forms/'+this.props.match.params.id+'/submit_response/',
-      data,
-        {headers: {'X-CSRFToken': csrftoken}})
+      data, {headers: {'X-CSRFToken': csrftoken}})
       .then((r) => {
         this.setState({submitted: true});
+      })
+      .catch((error) => {
+        if (error.response.status == 400) {
+          var errors = {};
+          _.each(
+            error.response.data.errors,
+            (value, key) => {
+               errors[key] = value.join(' ');
+            }
+          );
+          this._form.setState({errors: errors});
+        } else {
+          this.setState({serverError: "Recieved "+error.response.status+" from server. Try again."});
+        }
       });
   }
 
@@ -129,13 +151,20 @@ class FormView extends React.Component {
         var element;
         switch (field.control_type) {
           case 0: // text
-            element = (<input type="text" name={"input_"+field.id} />);
+            element = (<Text field={field.id} />);
             break;
           case 1: // boolean
-            element = (<input type="checkbox" name={"input_"+field.id} />);
+            element = (<Checkbox value='true' field={field.id} />);
             break;
           case 2: // multiple choice
           case 3: // options
+            var options = _.map(
+              field.control_data.split("\n"),
+              (line) => {
+                return {label: line, value: line};
+              }
+            );
+            element = (<Select field={field.id} options={options} />);
         }
         inputs.push((
           <label key={field.name}>{field.name} {element}</label>
@@ -145,15 +174,25 @@ class FormView extends React.Component {
         <div>
           <p>{this.state.form.title}</p>
           <p>{this.state.form.description}</p>
-          <form method="post" onSubmit={this.handleSubmit}>
-            <label>Email <input type="text" name="email" /></label>
-            <label>Name <input type="text" name="name" /></label>
-            <label>Address <input type="text" name="address" /></label>
-            {inputs}
-            <p>
-              <input type="submit" className="button" value="Submit"/ >
-            </p>
-          </form>
+          <p className="error">{this.state.serverError}</p>
+          <Form ref={(r) => {this._form = r}} onSubmit={this.handleSubmit} >
+            {({ submitForm, setAllTouched}) => {
+              this.setAllTouched = setAllTouched;
+              return (
+                <form method="post" onSubmit={submitForm}>
+                  <label>Email <Text type='text' field='email' /></label>
+                  <label>Name <Text type='text' field='name' /></label>
+                  <label>Address <Text type='text' field='address' /></label>
+                  <NestedForm field='fields'>
+                    <Form>
+                      {inputs}
+                    </Form>
+                  </NestedForm>
+                  <input type="submit" className="button" value="Submit" />
+                </form>
+              )
+            }}
+          </Form>
         </div>
       )
     }

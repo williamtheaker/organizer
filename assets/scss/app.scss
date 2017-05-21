@@ -1,6 +1,23 @@
 @import "~foundation-sites/scss/foundation";
 @include foundation-everything;
 
+.FormInput {
+  padding: 2px;
+}
+
+.-hasError {
+  background-color:#f88;
+  input {
+    background-color: #fbb;
+  }
+  .FormError {
+    margin: 0.5em;
+    padding: 0.5em;
+    background-color: #a00;
+    color: #fff;
+  }
+}
+
 body {
   background-color: #888;
   font-color: #fff;
