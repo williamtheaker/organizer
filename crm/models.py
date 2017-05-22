@@ -83,7 +83,7 @@ class Form(models.Model):
     next_state = models.IntegerField(choices=SignupState.choices())
 
     def get_absolute_url(self):
-        return reverse('form', args=[self.id])
+        return '/crm/f/%s/'%(self.id)
 
     def __unicode__(self):
         return "%s: %s"%(self.action.name, self.title)
