@@ -27,6 +27,7 @@ router.register(r'campaigns', views.CampaignViewSet)
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(router.urls)),
+    url(r'^crm/f/(?P<form_id>[0-9]+)/?', views.view_form),
     url(r'^', views.index)
     #url(r'^crm/', include('crm.urls')),
 ]

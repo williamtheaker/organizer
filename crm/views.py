@@ -66,9 +66,8 @@ class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CampaignSerializer
 
 def index(request):
-    forms = models.Form.objects.all()
-    return render(request, 'index.html', {'forms':forms, 'settings':settings})
+    return render(request, 'index.html', {'settings':settings})
 
-def action(request, action_id):
-    action = models.Action.objects.all()
-    return render(request, 'action.html', {'action': action})
+def view_form(request, form_id):
+    form = models.Form.objects.get(pk=form_id)
+    return render(request, 'form.html', {'form_obj': form})

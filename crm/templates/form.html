@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extrahead %}
+<meta property="og:title" content="{{form_obj.action}} - {{form_obj.title}}" />
+<meta property="og:description" content="{{form_obj.description}}" />
+<meta property="og:site_name" content="East Bay Forward" />
+<meta property="og:image" content="https://organizing.eastbayforward.org{% static 'img/unfurl-bg.png' %}" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="{{form_obj.action}} - {{form_obj.title}}" />
+<meta property="twitter:description" content="{{form_obj.description}}" />
+<meta property="twitter:label1" content="When" />
+{% endblock %}
