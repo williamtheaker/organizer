@@ -4,6 +4,7 @@ import { titles } from '../TitleManager'
 import { Form, Text, NestedForm, FormInput } from 'react-form'
 import PlacesAutocomplete from 'react-places-autocomplete'
 import _ from 'underscore'
+import ReactMarkdown from 'react-markdown'
 
 import FormFieldForm from './FormFieldForm'
 
@@ -100,7 +101,7 @@ export default class FormView extends React.Component {
       return (
         <div>
           <p>{this.state.form.title}</p>
-          <p>{this.state.form.description}</p>
+          <ReactMarkdown source={this.state.form.description} />
           <p className="error">{this.state.serverError}</p>
           <Form ref={(r) => {this._form = r}} onSubmit={this.handleSubmit} >
             {({ submitForm, setAllTouched}) => {
