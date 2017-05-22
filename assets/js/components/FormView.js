@@ -1,7 +1,8 @@
 import React from 'react'
 import axios from 'axios'
 import { titles } from '../TitleManager'
-import { Form, Text, NestedForm } from 'react-form'
+import { Form, Text, NestedForm, FormInput } from 'react-form'
+import PlacesAutocomplete from 'react-places-autocomplete'
 import _ from 'underscore'
 
 import FormFieldForm from './FormFieldForm'
@@ -108,7 +109,21 @@ export default class FormView extends React.Component {
                 <form method="post" onSubmit={submitForm}>
                   <label>Email <Text type='text' field='email' /></label>
                   <label>Name <Text type='text' field='name' /></label>
-                  <label>Address <Text type='text' field='address' /></label>
+                  <label>
+                    Address
+                    <FormInput field='address'>
+                      {({ setValue, getValue, setTouched }) => {
+                        const inputProps = {
+                          value: getValue(),
+                          onChange: val => setValue(val),
+                          onBlur: () => setTouched()
+                        }
+                        return (
+                          <PlacesAutocomplete inputProps={inputProps} />
+                        )
+                      }}
+                    </FormInput>
+                  </label>
                   <NestedForm field='fields'>
                     <FormFieldForm fields={this.state.form.fields} />
                   </NestedForm>
