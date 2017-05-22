@@ -7,17 +7,20 @@ from . import models, forms
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from . import serializers
 
 class ActionViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Action.objects.all()
     serializer_class = serializers.ActionSerializer
 
 class FormViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Form.objects.all()
     serializer_class = serializers.FormSerializer
 
-    @detail_route(methods=['post'])
+    @detail_route(methods=['post'], permission_classes=(AllowAny,))
     def submit_response(self, request, pk=None):
         form_obj = self.get_object()
         fields = models.FormField.objects.filter(form=form_obj).all()
@@ -44,10 +47,12 @@ class FormViewSet(viewsets.ModelViewSet):
         return Response()
 
 class FieldViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.FormField.objects.all()
     serializer_class = serializers.FieldSerializer
 
 class CampaignViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Campaign.objects.all()
     serializer_class = serializers.CampaignSerializer
 
