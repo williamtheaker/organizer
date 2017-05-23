@@ -11,6 +11,14 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from . import serializers
 
+class ActivistViewSet(viewsets.ModelViewSet):
+    queryset = models.Activist.objects.all()
+    serializer_class = serializers.ActivistSerializer
+
+class SignupViewSet(viewsets.ModelViewSet):
+    queryset = models.Signup.objects.all()
+    serializer_class = serializers.SignupSerializer
+
 class ActionViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Action.objects.all()

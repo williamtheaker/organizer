@@ -1,17 +1,35 @@
 from rest_framework import serializers
 from . import models
 
-class ActionSerializer(serializers.HyperlinkedModelSerializer):
+class ActivistSerializer(serializers.HyperlinkedModelSerializer):
+    address = serializers.CharField(source='address.raw')
     class Meta:
-        model = models.Action
-        fields = ('campaign', 'name', 'date', 'id')
-        depth = 1
+        model = models.Activist
+        fields = ('name',  'email', 'address')
 
+class FormResponseSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = models.FormResponse
+        fields = ('value', 'id')
+
+class SignupSerializer(serializers.HyperlinkedModelSerializer):
+    activist = ActivistSerializer()
+    responses = FormResponseSerializer()
+    class Meta:
+        model = models.Signup
+        fields = ('activist', 'state', 'state_name', 'responses', 'id')
 
 class FieldSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.FormField
         fields = ('id', 'name', 'control_type', 'control_data')
+
+class ActionSerializer(serializers.HyperlinkedModelSerializer):
+    signups = SignupSerializer(many=True)
+    fields = FieldSerializer(many=True)
+    class Meta:
+        model = models.Action
+        fields = ('campaign', 'name', 'date', 'id', 'signups', 'forms', 'fields')
 
 class FormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)

@@ -23,6 +23,8 @@ router.register(r'actions', views.ActionViewSet)
 router.register(r'forms', views.FormViewSet)
 router.register(r'fields', views.FieldViewSet)
 router.register(r'campaigns', views.CampaignViewSet)
+router.register(r'signups', views.SignupViewSet)
+router.register(r'activists', views.ActivistViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
