@@ -1,6 +1,12 @@
 @import "~foundation-sites/scss/foundation";
 @include foundation-everything;
 
+.data-table {
+  td {
+    padding: 0.10em;
+  }
+}
+
 .FormInput {
   padding: 2px;
 }

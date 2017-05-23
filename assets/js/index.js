@@ -8,6 +8,7 @@ import Footer from './components/Footer'
 import Canvas from './components/Canvas'
 import Header from './components/Header'
 import FormView from './components/FormView'
+import ActionReport from './components/ActionReport'
 
 class App extends React.Component {
   constructor(props) {
@@ -30,6 +31,7 @@ class App extends React.Component {
               <Header title={this.state.title} subtitle={this.state.subtitle} />
               <Canvas>
                 <Route exact path="/crm/f/:id" component={FormView}/>
+                <Route exact path="/crm/action/:id" component={ActionReport}/>
               </Canvas>
             </div>
           </div>
