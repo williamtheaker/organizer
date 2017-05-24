@@ -5,25 +5,9 @@ import { Form, Text, NestedForm, FormInput } from 'react-form'
 import PlacesAutocomplete from 'react-places-autocomplete'
 import _ from 'underscore'
 import ReactMarkdown from 'react-markdown'
+import { csrftoken } from '../Django'
 
 import FormFieldForm from './FormFieldForm'
-
-function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
 
 export default class FormView extends React.Component {
   constructor(props) {
@@ -39,7 +23,6 @@ export default class FormView extends React.Component {
       serverError: undefined
     };
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.csrftoken = getCookie('csrftoken');
   }
 
   componentDidMount() {
@@ -69,7 +52,7 @@ export default class FormView extends React.Component {
       }
     }
     axios.post('/api/forms/'+this.props.match.params.id+'/submit_response/',
-      data, {headers: {'X-CSRFToken': this.csrftoken}})
+      data, {headers: {'X-CSRFToken': csrftoken}})
       .then((r) => {
         this.setState({submitted: true});
       })
