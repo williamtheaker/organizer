@@ -3,21 +3,41 @@ import axios from 'axios'
 import { titles } from '../TitleManager'
 import _ from 'underscore'
 import Modal from 'react-modal'
+import { csrftoken } from '../Django'
 
-function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+function SignupStateSelect(props) {
+  return (
+    <select {...props}>
+      <option value=''>All</option>
+      <option value='0'>Prospective</option>
+      <option value='1'>Confirmed</option>
+      <option value='2'>Attended</option>
+      <option value='3'>No-Show</option>
+      <option value='4'>Cancelled</option>
+    </select>
+  )
+}
+
+class SignupRow extends React.Component {
+  render() {
+    const s = this.props.signup;
+    var fieldValues = [];
+    _.each(s.responses, (response) => {
+      fieldValues.push((
+        <td key={response.id}>{response.value}</td>
+      ));
+    });
+    //areAllSelected = rowSelected && areAllSelected;
+    return (
+      <tr key={s.activist.email}>
+        <th><input type="checkbox" onChange={(evt) => this.props.onSelectedChange(evt.target.checked)} checked={this.props.selected}/></th>
+        <td>{s.activist.name}</td>
+        <td>{s.activist.email}</td>
+        <td>{s.state_name}</td>
+        {fieldValues}
+      </tr>
+    )
+  }
 }
 
 class BulkStateEditor extends React.Component {
@@ -27,7 +47,6 @@ class BulkStateEditor extends React.Component {
       nextState: 0,
       saving: false
     }
-    this.csrftoken = getCookie('csrftoken');
   }
 
   save() {
@@ -37,7 +56,7 @@ class BulkStateEditor extends React.Component {
       var data = {
         state: this.state.nextState
       };
-      requests.push(axios.patch('/api/signups/'+row.id+'/', data, {headers: {'X-CSRFToken': this.csrftoken}}))
+      requests.push(axios.patch('/api/signups/'+row.id+'/', data, {headers: {'X-CSRFToken': csrftoken}}))
     });
     Promise.all(requests)
       .then(() => {
@@ -49,17 +68,16 @@ class BulkStateEditor extends React.Component {
   render() {
     return (
       <div>
-        <select onChange={(e) => this.setState({nextState: e.target.value})} value={this.state.nextState}>
-          <option value="0">Prospective</option>
-          <option value="1">Confirmed</option>
-        </select>
-        <input type="button" className="button" value={"Update "+this.props.selectedRows.length+" rows"} onClick={() => this.save()} enabled={!this.state.saving}/>
+        <SignupStateSelect
+          onChange={(e) => this.setState({nextState: e.target.value})}
+          value={this.state.nextState} />
+        <input type="button" className="button" value={"Update "+this.props.selectedRows.length+" rows"} onClick={() => this.save()} disabled={this.state.saving}/>
       </div>
     )
   }
 }
 
-class FilterHeader extends React.Component {
+class SignupStateFilterHeader extends React.Component {
   constructor(props) {
     super(props);
     this.state = {value: ''};
@@ -77,22 +95,10 @@ class FilterHeader extends React.Component {
   }
 
   render() {
-    var filterOptions = [];
-    filterOptions.push((
-      <option key='' value=''>All</option>
-    ));
-    filterOptions.push((
-      <option key='0' value='0'>Prospective</option>
-    ));
-    filterOptions.push((
-      <option key='1' value='1'>Confirmed</option>
-    ));
     return (
       <th>
         {this.props.name}
-        <select onChange={this.handleChanged} value={this.state.value}>
-          {filterOptions}
-        </select>
+        <SignupStateSelect onChange={this.handleChanged} value={this.state.value} />
       </th>
     );
   }
@@ -120,8 +126,20 @@ class DataTable extends React.Component {
     this.setAllSelected = this.setAllSelected.bind(this);
   }
 
+  allItems() {
+    if (this.props.action) {
+      return this.props.action.signups;
+    } else {
+      return [];
+    }
+  }
+
+  visibleItems() {
+    return _.filter(this.allItems(), this._runFilters, this)
+  }
+
   selectedItems() {
-    return _.filter(this.props.action.signups, (s) => {
+    return _.filter(this.visibleItems(), (s) => {
       return this.state.selected[s.id];
     });
   }
@@ -135,7 +153,7 @@ class DataTable extends React.Component {
 
   setAllSelected(state) {
     var currentSelected = this.state.selected;
-    _.each(this.props.action.signups, (s) => {
+    _.each(this.allItems(), (s) => {
       console.log("select all", s, state);
       currentSelected[s.id] = state;
     });
@@ -150,45 +168,40 @@ class DataTable extends React.Component {
     this.props.onSelectedChanged(this.selectedItems());
   }
 
-  render() {
-    var rows = [];
-    var fieldHeaders = [];
-    var areAllSelected = true;
-    if (this.props.action) {
-      _.each(this.props.action.fields, (f) => {
-        fieldHeaders.push((
-          <th key={f.id}>{f.name}</th>
-        ));
-      });
-      _.each(_.filter(this.props.action.signups, this._runFilters, this), (s) => {
-        var fieldValues = [];
-        _.each(s.responses, (response) => {
-          fieldValues.push((
-            <td key={response.id}>{response.value}</td>
-          ));
-        });
-        var rowSelected = this.state.selected[s.id];
-        areAllSelected = rowSelected && areAllSelected;
-        rows.push((
-          <tr key={s.activist.email}>
-            <th><input type="checkbox" onChange={(evt) => {this.setSelected(s.id, evt.target.checked)}} checked={rowSelected}/></th>
-            <td>{s.activist.name}</td>
-            <td>{s.activist.email}</td>
-            <td>{s.state_name}</td>
-            {fieldValues}
-          </tr>
-        ));
-      });
+  areAllSelected() {
+    const items = this.visibleItems();
+    if (items.length == 0) {
+      return false;
+    } else {
+      return _.every(items, (item) => this.state.selected[item.id]);
     }
+  }
+
+  render() {
+    var fieldHeaders = [];
+    if (this.props.action) {
+      fieldHeaders = _.map(this.props.action.fields, (f) => (
+          <th key={f.id}>{f.name}</th>
+        )
+      );
+    }
+
+    const rows = _.map(this.visibleItems(), (s) => (
+      <SignupRow
+        key={s.id}
+        signup={s}
+        selected={this.state.selected[s.id]}
+        onSelectedChange={(selected) => this.setSelected(s.id, selected)} />
+    ));
 
     return (
       <table className="data-table hover">
         <thead>
           <tr>
-            <th><input type="checkbox" onChange={(evt) => {this.setAllSelected(evt.target.checked)}} checked={areAllSelected}/></th>
+            <th><input type="checkbox" onChange={(evt) => {this.setAllSelected(evt.target.checked)}} checked={this.areAllSelected()}/></th>
             <th>Name</th>
             <th>E-mail</th>
-            <FilterHeader
+            <SignupStateFilterHeader
               name='Status'
               onFilterChanged={
                 (value) => {
