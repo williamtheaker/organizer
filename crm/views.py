@@ -9,6 +9,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from django.views.decorators.clickjacking import xframe_options_exempt
 from . import serializers
 
 class ActivistViewSet(viewsets.ModelViewSet):
@@ -28,6 +29,18 @@ class FormViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Form.objects.all()
     serializer_class = serializers.FormSerializer
+
+    @detail_route(methods=['get'], permission_classes=(AllowAny,))
+    def embed(self, request, pk=None):
+        form_obj = self.get_object()
+        embed_data = {
+            'version': '1.0',
+            'type': 'rich',
+            'width': 400,
+            'height': 500,
+            'html': "<iframe src=\"http://organizing.eastbayforward.org/crm/f/%s\" width=400 height=500></iframe>"%(form_obj.id)
+        }
+        return Response(embed_data)
 
     @detail_route(methods=['post'], permission_classes=(AllowAny,))
     def submit_response(self, request, pk=None):
@@ -76,6 +89,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
 def index(request):
     return render(request, 'index.html', {'settings':settings})
 
+@xframe_options_exempt
 def view_form(request, form_id):
     form = models.Form.objects.get(pk=form_id)
     return render(request, 'form.html', {'form_obj': form})
