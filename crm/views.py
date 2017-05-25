@@ -2,9 +2,9 @@
 from __future__ import unicode_literals
 
 import logging
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.conf import settings
-from . import models, forms
+from . import models
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
