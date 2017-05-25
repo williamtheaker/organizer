@@ -2,7 +2,7 @@
   "name": "organizer",
   "version": "0.0.1",
   "scripts": {
-    "postinstall": "node_modules/webpack/bin/webpack.js",
+    "postinstall": "node_modules/webpack/bin/webpack.js -p",
     "webpack": "node_modules/webpack/bin/webpack.js --progress --colors --watch"
   },
   "dependencies": {
