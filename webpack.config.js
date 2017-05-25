@@ -2,6 +2,7 @@
 var path = require('path')
 var webpack = require('webpack')
 var BundleTracker = require('webpack-bundle-tracker')
+var ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
     //the base directory (absolute path) for resolving the entry option
@@ -37,7 +38,8 @@ module.exports = {
         }),
         new webpack.optimize.CommonsChunkPlugin({
           names: 'manifest'
-        })
+        }),
+        new ExtractTextPlugin('[name]-[hash].css')
     ],
     
     module: {
@@ -55,7 +57,7 @@ module.exports = {
                     presets: ['react', 'es2015'] 
                 }
             },
-            {test: /\.scss$/, loader: 'style-loader!css-loader!sass-loader'},
+            {test: /\.scss$/, loader: ExtractTextPlugin.extract({loader: 'css-loader!sass-loader'})},
             {test: /\.(png|jpg)$/, loader: 'url-loader'}
         ]
     },
