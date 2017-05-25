@@ -38,7 +38,7 @@ class FormViewSet(viewsets.ModelViewSet):
             'type': 'rich',
             'width': 400,
             'height': 500,
-            'html': "<iframe src=\"http://organizing.eastbayforward.org/crm/f/%s\" width=400 height=500></iframe>"%(form_obj.id)
+            'html': "<iframe src=\"https://organizing.eastbayforward.org/crm/f/%s\" width=400 height=500></iframe>"%(form_obj.id)
         }
         return Response(embed_data)
 
