@@ -3,6 +3,7 @@ var path = require('path')
 var webpack = require('webpack')
 var BundleTracker = require('webpack-bundle-tracker')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
+var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 
 module.exports = {
     //the base directory (absolute path) for resolving the entry option
@@ -39,7 +40,8 @@ module.exports = {
         new webpack.optimize.CommonsChunkPlugin({
           names: 'manifest'
         }),
-        new ExtractTextPlugin('[name]-[hash].css')
+        new ExtractTextPlugin('[name]-[hash].css'),
+        new OptimizeCssAssetsPlugin()
     ],
     
     module: {
