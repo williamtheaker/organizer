@@ -5,6 +5,7 @@ import _ from 'underscore'
 import Modal from 'react-modal'
 import { csrftoken } from '../Django'
 import EventEmitter from 'events'
+import memoize from 'memoizee'
 
 function SignupStateSelect(props) {
   return (
@@ -197,6 +198,10 @@ class ActionStore extends EventEmitter {
     this.data = {};
     this.filters = [];
     this.selected = [];
+
+    this.visibleItems = memoize(this.visibleItems.bind(this));
+    this.selectedItems = memoize(this.selectedItems.bind(this));
+    this.areAllSelected = memoize(this.areAllSelected.bind(this));
   }
 
   notify() {
@@ -214,6 +219,9 @@ class ActionStore extends EventEmitter {
       .then((results) => {
         titles.setTitle('Action Report', results.data.name);
         this.data = results.data;
+        this.visibleItems.clear();
+        this.selectedItems.clear();
+        this.areAllSelected.clear();
         this.notify();
         return results;
       });
@@ -243,6 +251,9 @@ class ActionStore extends EventEmitter {
 
   setFilter(property, value) {
     this.filters[property] = value;
+    this.visibleItems.clear();
+    this.selectedItems.clear();
+    this.areAllSelected.clear();
     this.notify();
   }
 
@@ -250,11 +261,15 @@ class ActionStore extends EventEmitter {
     _.each(this.allItems(), (s) => {
       this.selected[s.id] = state;
     });
+    this.selectedItems.clear();
+    this.areAllSelected.clear();
     this.notify();
   }
 
   setSelected(rowID, state) {
     this.selected[rowID] = state;
+    this.selectedItems.clear();
+    this.areAllSelected.clear();
     this.notify();
   }
 
