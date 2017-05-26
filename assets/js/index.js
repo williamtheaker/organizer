@@ -9,13 +9,14 @@ import Canvas from './components/Canvas'
 import Header from './components/Header'
 import FormView from './components/FormView'
 import ActionReport from './components/ActionReport'
+import ActivistReport from './components/ActivistReport'
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: '',
-      subtitle: ''
+      subtitle: '',
+      title: ''
     }
     titles.register(() => {
       this.setState({title: titles.title, subtitle: titles.subtitle});
@@ -32,6 +33,7 @@ class App extends React.Component {
               <Canvas>
                 <Route exact path="/crm/f/:id" component={FormView}/>
                 <Route exact path="/crm/action/:id" component={ActionReport}/>
+                <Route exact path="/crm/activist/" component={ActivistReport}/>
               </Canvas>
             </div>
           </div>
