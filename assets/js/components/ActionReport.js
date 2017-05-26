@@ -5,7 +5,9 @@ import _ from 'underscore'
 import Modal from 'react-modal'
 import { csrftoken } from '../Django'
 import EventEmitter from 'events'
-import memoize from 'memoizee'
+import RowDataStore from './RowDataStore'
+import StoreBinding from './StoreBinding'
+import { Table } from './DataTable'
 
 function SignupStateSelect(props) {
   return (
@@ -18,27 +20,6 @@ function SignupStateSelect(props) {
       <option value='4'>Cancelled</option>
     </select>
   )
-}
-
-class SignupRow extends React.Component {
-  render() {
-    const s = this.props.signup;
-    var fieldValues = [];
-    _.each(s.responses, (response) => {
-      fieldValues.push((
-        <td key={response.id}>{response.value}</td>
-      ));
-    });
-    return (
-      <tr key={s.activist.email}>
-        <th><input type="checkbox" value={s.id} onChange={(evt) => this.props.onSelectedChange(evt.target.checked)} checked={this.props.selected}/></th>
-        <td>{s.activist.name}</td>
-        <td>{s.activist.email}</td>
-        <td>{s.state_name}</td>
-        {fieldValues}
-      </tr>
-    )
-  }
 }
 
 class BulkStateEditor extends React.Component {
@@ -98,131 +79,19 @@ class SignupStateFilterHeader extends React.Component {
   render() {
     return (
       <th>
-        {this.props.name}
+        {this.props.column.label}
         <SignupStateSelect onChange={this.handleChanged} value={this.state.value} />
       </th>
     );
   }
 }
 
-class DataTable extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      showBulkStateEdit: false,
-    };
-  }
-
-  render() {
-    var fieldHeaders = [];
-    if (this.props.store_data.data.fields) {
-      fieldHeaders = _.map(this.props.store_data.data.fields, (f) => (
-          <th key={f.id}>{f.name}</th>
-        )
-      );
-    }
-
-    const rows = _.map(this.props.store_data.visible, (s) => (
-      <SignupRow
-        key={s.id}
-        signup={s}
-        selected={this.props.store.isSelected(s.id)}
-        onSelectedChange={(selected) => this.props.store.setSelected(s.id, selected)} />
-    ));
-
-    return (
-      <table className="data-table hover">
-        <thead>
-          <tr>
-            <th><input type="checkbox" onChange={(evt) => {this.props.store.setAllSelected(evt.target.checked)}} checked={this.props.store.areAllSelected()}/></th>
-            <th>Name</th>
-            <th>E-mail</th>
-            <SignupStateFilterHeader
-              name='Status'
-              onFilterChanged={
-                (value) => {
-                  this.props.store.setFilter('state', value);
-                }
-              }/>
-            {fieldHeaders}
-          </tr>
-        </thead>
-        <tbody>
-          {rows}
-        </tbody>
-      </table>
-    )
-  }
-}
-
-class StoreBinding extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      store_data: {
-        all: [],
-        visible: [],
-        selected: [],
-        data: {}
-      }
-    }
-    this.onStoreUpdated = this.onStoreUpdated.bind(this);
-  }
-
-  onStoreUpdated(bundle) {
-    this.setState({store_data: bundle});
-  }
-
-  componentDidMount() {
-    this.props.store.on('update', this.onStoreUpdated);
-    this.props.store.notify();
-  }
-
-  componentWillUnmount() {
-    this.props.store.removeListener('update', this.onStoreUpdated);
-  }
-
-  render() {
-    return (
-      <span>
-        {React.cloneElement(this.props.children, {store: this.props.store, store_data: this.state.store_data})}
-      </span>
-    )
-  }
-}
-
-class ActionStore extends EventEmitter {
-  constructor() {
-    super();
-    this.data = {};
-    this.filters = [];
-    this.selected = [];
-
-    this.visibleItems = memoize(this.visibleItems.bind(this));
-    this.selectedItems = memoize(this.selectedItems.bind(this));
-    this.areAllSelected = memoize(this.areAllSelected.bind(this));
-  }
-
-  notify() {
-    var dataBundle = {
-      all: this.allItems(),
-      visible: this.visibleItems(),
-      selected: this.selectedItems(),
-      data: this.data
-    };
-    this.emit('update', dataBundle);
-  }
-
+class ActionStore extends RowDataStore {
   reload(id) {
     return axios.get('/api/actions/'+id+'/')
       .then((results) => {
         titles.setTitle('Action Report', results.data.name);
-        this.data = results.data;
-        this.visibleItems.clear();
-        this.selectedItems.clear();
-        this.areAllSelected.clear();
-        this.notify();
+        this.setData(results.data);
         return results;
       });
   }
@@ -234,75 +103,19 @@ class ActionStore extends EventEmitter {
       return [];
     }
   }
-
-  visibleItems() {
-    return _.filter(this.allItems(), this._runFilters, this)
-  }
-
-  selectedItems() {
-    return _.filter(this.visibleItems(), (s) => {
-      return this.selected[s.id];
-    });
-  }
-
-  isSelected(id) {
-    return this.selected[id];
-  }
-
-  setFilter(property, value) {
-    this.filters[property] = value;
-    this.visibleItems.clear();
-    this.selectedItems.clear();
-    this.areAllSelected.clear();
-    this.notify();
-  }
-
-  setAllSelected(state) {
-    _.each(this.allItems(), (s) => {
-      this.selected[s.id] = state;
-    });
-    this.selectedItems.clear();
-    this.areAllSelected.clear();
-    this.notify();
-  }
-
-  setSelected(rowID, state) {
-    this.selected[rowID] = state;
-    this.selectedItems.clear();
-    this.areAllSelected.clear();
-    this.notify();
-  }
-
-  areAllSelected() {
-    const items = this.visibleItems();
-    if (items.length == 0) {
-      return false;
-    } else {
-      return _.every(items, (item) => this.selected[item.id]);
-    }
-  }
-
-
-  _runFilters(row) {
-    return _.every(
-      _.pairs(this.filters),
-      (field) => {
-        return field[1](row[field[0]]);
-      }
-    );
-  }
-
 }
 
 export default class ActionReport extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {showBulkStateEdit: false, columns: []};
     this.handleFiltersChanged = this.handleFiltersChanged.bind(this);
     this.store = new ActionStore();
+    this.store.on('update', () => this.updateColumns());
   }
 
   componentDidMount() {
+    titles.setTitle('Action Report', '');
     this.reload();
   }
 
@@ -312,6 +125,26 @@ export default class ActionReport extends React.Component {
 
   handleFiltersChanged(filters) {
     this.setState({filters: filters});
+  }
+
+  updateColumns() {
+    var columns = [
+      {label: "Name",
+       value: 'activist.name'},
+      {label: "E-mail",
+       value: 'activist.email'},
+      {label: "Status",
+       value: 'state',
+       cell: ({row}) => <span>{row.state_name}</span>,
+       header: SignupStateFilterHeader}
+    ];
+    _.each(this.store.data.fields, (f) => {
+      columns.push({
+        label: f.name,
+        value: 'responses.'+f.id+'.value'
+      });
+    });
+    this.setState({columns: columns});
   }
 
   render() {
@@ -347,7 +180,7 @@ export default class ActionReport extends React.Component {
         <div className="row">
           <div className="small-12 columns">
             <StoreBinding store={this.store}>
-              <DataTable />
+              <Table columns={this.state.columns} />
             </StoreBinding>
           </div>
         </div>
