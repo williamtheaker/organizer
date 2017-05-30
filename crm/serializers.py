@@ -1,5 +1,11 @@
 from rest_framework import serializers
 from . import models
+from django.contrib.auth.models import User
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'id')
 
 class ActivistSerializer(serializers.HyperlinkedModelSerializer):
     address = serializers.CharField(source='address.raw')

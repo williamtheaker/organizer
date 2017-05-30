@@ -13,6 +13,19 @@ from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from django.views.decorators.clickjacking import xframe_options_exempt
 from . import serializers
+from django.contrib.auth.models import User
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+    def get_object(self):
+        pk = self.kwargs.get('pk')
+
+        if pk == 'me':
+            return self.request.user
+
+        return super(UserViewSet, self).get_object()
 
 class ActivistViewSet(viewsets.ModelViewSet):
     queryset = models.Activist.objects.all()
