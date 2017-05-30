@@ -9,7 +9,7 @@ from django.core.mail import EmailMessage
 from . import models
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from django.views.decorators.clickjacking import xframe_options_exempt
 from . import serializers
@@ -30,6 +30,18 @@ class UserViewSet(viewsets.ModelViewSet):
 class ActivistViewSet(viewsets.ModelViewSet):
     queryset = models.Activist.objects.all()
     serializer_class = serializers.ActivistSerializer
+
+    @list_route(methods=['get'])
+    def recent(self, request):
+        recent_activists = models.Activist.objects.all().order_by('-created')[0:10]
+        page = self.paginate_queryset(recent_activists)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(recent_activists, many=True)
+        return Response(serializer.data)
 
 class SignupViewSet(viewsets.ModelViewSet):
     queryset = models.Signup.objects.all()
