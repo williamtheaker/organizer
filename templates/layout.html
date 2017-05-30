@@ -6,6 +6,8 @@
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie-edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {% render_bundle 'manifest' 'css' %}
+  {% render_bundle 'vendor' 'css' %}
   {% render_bundle 'main' 'css' %}
   <script src="https://cdn.ravenjs.com/2.3.0/raven.min.js"></script>
   <script>Raven.config('{% sentry_public_dsn %}').install()</script>
@@ -16,18 +18,12 @@
   />
   <script type="text/javascript"
           src="https://maps.googleapis.com/maps/api/js?key={{settings.GOOGLE_MAPS_API_KEY}}&libraries=places"></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.1/js/foundation.min.js"
-    integrity="sha256-Nd2xznOkrE9HkrAMi4xWy/hXkQraXioBg9iYsBrcFrs="
-    crossorigin="anonymous"></script>
   {% block extrahead %}{% endblock %}
   <title>East Bay Forward</title>
   <body>
     <div id="container"></div>
   </body>
-  {% render_bundle 'manifest' %}
-  {% render_bundle 'vendor' %}
+  {% render_bundle 'manifest' 'js' %}
+  {% render_bundle 'vendor' 'js' %}
   {% render_bundle 'main' 'js' %}
 </html>
