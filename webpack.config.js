@@ -59,7 +59,7 @@ module.exports = {
                     presets: ['react', 'es2015'] 
                 }
             },
-            {test: /\.scss$/, loader: ExtractTextPlugin.extract({loader: 'css-loader!sass-loader'})},
+            {test: /\.s?css$/, loader: ExtractTextPlugin.extract({loader: 'css-loader!sass-loader'})},
             {test: /\.(png|jpg)$/, loader: 'url-loader'}
         ]
     },

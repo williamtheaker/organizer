@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import logging
 from django.shortcuts import render
 from django.conf import settings
+from django.template import loader
+from django.core.mail import EmailMessage
 from . import models
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -24,6 +26,37 @@ class ActionViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Action.objects.all()
     serializer_class = serializers.ActionSerializer
+
+    @detail_route(methods=['post'])
+    def email_activists(self, request, pk=None):
+        action_obj = self.get_object()
+        serializer = serializers.EmailSerializer(data={
+            'subject': request.data.get('subject', None),
+            'body': request.data.get('body', None),
+            'signups': request.data.get('signups', None)
+        })
+        if serializer.is_valid():
+            email_template = loader.get_template('email.eml')
+            signups = models.Signup.objects.filter(
+                action=action_obj,
+                pk__in=serializer.validated_data.get('signups')
+            )
+            for s in signups:
+                generated_email = email_template.render({
+                    'signup': s,
+                    'body': serializer.validated_data.get('body')
+                })
+                email_obj = EmailMessage(
+                    subject=serializer.validated_data.get('subject'),
+                    body=generated_email,
+                    to=[s.activist.email],
+                    reply_to=[request.user.email],
+                )
+                email_obj.encoding = 'utf-8'
+                email_obj.send()
+            return Response({})
+        else:
+            return Response({'errors': serializer.errors}, 400)
 
 class FormViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -86,7 +119,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
     queryset = models.Campaign.objects.all()
     serializer_class = serializers.CampaignSerializer
 
-def index(request):
+def index(request, *args, **kwargs):
     return render(request, 'index.html', {'settings':settings})
 
 @xframe_options_exempt

@@ -47,3 +47,8 @@ class ResponseSerializer(serializers.Serializer):
     email = serializers.EmailField()
     name = serializers.CharField(allow_blank=True)
     address = serializers.CharField(allow_blank=True)
+
+class EmailSerializer(serializers.Serializer):
+    subject = serializers.CharField()
+    body = serializers.CharField()
+    signups = serializers.ListSerializer(child=serializers.IntegerField())

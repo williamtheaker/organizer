@@ -8,6 +8,8 @@ import EventEmitter from 'events'
 import RowDataStore from './RowDataStore'
 import StoreBinding from './StoreBinding'
 import { Table } from './DataTable'
+import { Form, Text, FormInput } from 'react-form'
+import { MarkdownEditor } from 'react-markdown-editor'
 
 function SignupStateSelect(props) {
   return (
@@ -20,6 +22,65 @@ function SignupStateSelect(props) {
       <option value='4'>Cancelled</option>
     </select>
   )
+}
+
+class EmailEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      sending: false
+    };
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleSubmit(values) {
+    console.log('submit!', values);
+    var data = {
+      subject: values.subject,
+      body: values.body,
+      signups: _.map(this.props.store_data.selected, ({id}) => id)
+    };
+    this.setState({sending: true});
+    axios.post('/api/actions/'+this.props.action_id+'/email_activists/',
+      data, {headers: {'X-CSRFToken': csrftoken}})
+      .then((r) => {
+        this.setState({sending: false});
+        this.props.onSent();
+      })
+      .catch(() => {
+        this.setState({sending: false});
+      });
+  }
+
+  render() {
+    return (
+      <Form ref={(r) => {this._form = r}} onSubmit={this.handleSubmit}>
+        {({submitForm}) => {
+          return (
+            <form method="post" onSubmit={submitForm}>
+              <label>
+                To:  {this.props.store_data.selected.length} activists
+              </label>
+              <label>Subject: <Text type='text' field='subject' /></label>
+              <label>
+                Body:
+                <FormInput field='body'>
+                  {({setValue, getValue}) => (
+                    <MarkdownEditor
+                      iconsSet="font-awesome"
+                      initialContent=""
+                      content={getValue()}
+                      onContentChange={setValue}/>
+                  )}
+                </FormInput>
+              </label>
+              <input type="submit" value="Send" className="button" disabled={this.state.sending} />
+            </form>
+          )
+        }}
+      </Form>
+    )
+  }
 }
 
 class BulkStateEditor extends React.Component {
@@ -108,7 +169,7 @@ class ActionStore extends RowDataStore {
 export default class ActionReport extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {showBulkStateEdit: false, columns: []};
+    this.state = {showBulkStateEdit: false, columns: [], showEmailModal: false};
     this.handleFiltersChanged = this.handleFiltersChanged.bind(this);
     this.store = new ActionStore();
     this.store.on('update', () => this.updateColumns());
@@ -159,6 +220,14 @@ export default class ActionReport extends React.Component {
             <BulkStateEditor onSaved={() => {this.setState({showBulkStateEdit: false});this.reload();}} />
           </StoreBinding>
         </Modal>
+        <Modal
+          isOpen={this.state.showEmailModal}
+          contentLabel="Email activists"
+          onRequestClose={() => {this.setState({showEmailModal: false})}} >
+          <StoreBinding store={this.store}>
+            <EmailEditor action_id={this.props.match.params.id} onSent={() => {this.setState({showEmailModal: false});}}/>
+          </StoreBinding>
+        </Modal>
         <div className="row">
           <div className="small-12 columns">
             <div className="top-bar">
@@ -171,6 +240,7 @@ export default class ActionReport extends React.Component {
               <div className="top-bar-right">
                 <ul className="menu">
                   <li><input type="button" className="button" value="Edit state" onClick={() => {this.setState({showBulkStateEdit: true});}} /></li>
+                  <li><input type="button" className="button" value="Email" onClick={() => {this.setState({showEmailModal: true});}} /></li>
                   <li><input type="button" className="button" value="Refresh" onClick={() => this.reload()} /></li>
                 </ul>
               </div>
