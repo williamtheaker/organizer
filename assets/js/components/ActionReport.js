@@ -10,6 +10,7 @@ import StoreBinding from './StoreBinding'
 import { Table } from './DataTable'
 import { Form, Text, FormInput } from 'react-form'
 import { MarkdownEditor } from 'react-markdown-editor'
+import Gravatar from 'react-gravatar'
 
 function SignupStateSelect(props) {
   return (
@@ -191,7 +192,8 @@ export default class ActionReport extends React.Component {
   updateColumns() {
     var columns = [
       {label: "Name",
-       value: 'activist.name'},
+       value: 'activist.name',
+       cell: ({row}) => <span><Gravatar email={row.activist.email} />{row.activist.name}</span>},
       {label: "E-mail",
        value: 'activist.email'},
       {label: "Status",
