@@ -6,6 +6,7 @@ import PlacesAutocomplete from 'react-places-autocomplete'
 import _ from 'underscore'
 import ReactMarkdown from 'react-markdown'
 import { csrftoken } from '../Django'
+import { Link } from 'react-router-dom'
 
 import FormFieldForm from './FormFieldForm'
 
@@ -121,5 +122,3 @@ export default class FormView extends React.Component {
     }
   }
 }
-
-

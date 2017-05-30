@@ -2,6 +2,7 @@ import EventEmitter from 'events'
 import _ from 'underscore'
 import memoize from 'memoizee'
 import objectPath from 'object-path'
+import axios from 'axios'
 
 export default class RowDataStore extends EventEmitter {
   constructor() {
@@ -92,5 +93,23 @@ export default class RowDataStore extends EventEmitter {
         return filterFunc(objectPath.get(row, fieldName));
       }
     );
+  }
+}
+
+export class APIListDataStore extends RowDataStore {
+  constructor(endpoint) {
+    super();
+    this.endpoint = endpoint;
+  }
+
+  reload() {
+    return axios.get(this.endpoint)
+      .then((response) => {
+        this.setData(response.data);
+      });
+  }
+
+  allItems() {
+    return this.data.results || [];
   }
 }

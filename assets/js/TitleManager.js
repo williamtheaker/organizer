@@ -1,3 +1,5 @@
+import _ from 'underscore'
+
 export default class TitleManager {
   constructor() {
     this.handlers = []
@@ -12,9 +14,12 @@ export default class TitleManager {
   setTitle(title, subtitle) {
     this.title = title;
     this.subtitle = subtitle;
-    $(this.handlers).each((idx, f) => {
-      f();
-    });
+    _.each(this.handlers, (f) => f());
+  }
+
+  setSubtitle(subtitle) {
+    this.subtitle = subtitle;
+    _.each(this.handlers, (f) => f());
   }
 }
 

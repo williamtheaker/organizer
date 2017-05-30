@@ -1,15 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import app_css from '../scss/app.scss'
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
 import { titles } from './TitleManager'
 
 import Footer from './components/Footer'
 import Canvas from './components/Canvas'
 import Header from './components/Header'
 import FormView from './components/FormView'
-import ActionReport from './components/ActionReport'
-import ActivistReport from './components/ActivistReport'
+import OrganizerIndex from './components/OrganizerIndex'
 
 class App extends React.Component {
   constructor(props) {
@@ -32,8 +31,7 @@ class App extends React.Component {
               <Header title={this.state.title} subtitle={this.state.subtitle} />
               <Canvas>
                 <Route exact path="/crm/f/:id" component={FormView}/>
-                <Route exact path="/crm/action/:id" component={ActionReport}/>
-                <Route exact path="/crm/activist/" component={ActivistReport}/>
+                <Route path="/organize" component={OrganizerIndex} />
               </Canvas>
             </div>
           </div>

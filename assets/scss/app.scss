@@ -1,6 +1,23 @@
 @import "~foundation-sites/scss/foundation";
 @include foundation-everything;
 
+nav {
+  background-color: #fff;
+  .breadcrumbs {
+    margin: 0;
+    li {
+      background-color: #fff;
+      padding: 1em;
+    }
+  }
+}
+
+.form-card {
+  width: 300px;
+  float: left;
+  margin: 1em;
+}
+
 .data-table {
   td {
     padding: 1px;

@@ -12,7 +12,9 @@ import { Form, Text, FormInput } from 'react-form'
 import { MarkdownEditor } from 'react-markdown-editor'
 import Gravatar from 'react-gravatar'
 import Select from 'react-select'
-import 'react-select/dist/react-select.css';
+import 'react-select/dist/react-select.css'
+import { Link } from 'react-router-dom'
+import TextTruncate from 'react-text-truncate'
 
 function SignupStateSelect(props) {
   const options = [
@@ -26,6 +28,44 @@ function SignupStateSelect(props) {
     <Select options={options} {...props} />
   )
 }
+
+class FormCards extends React.Component {
+  render() {
+    const cards = _.map(this.props.store_data.visible, (row) => (
+      <FormCard key={row.id} form={row} />
+    ));
+    return (
+      <div>
+        {cards}
+        <div className="card form-card">
+          <div className="card-divider">
+            <h3>Create a new form</h3>
+          </div>
+          <div className="card-section">
+            Create a new form to process data for an action
+          </div>
+        </div>
+        <br style={{clear:'both'}} />
+      </div>
+    )
+  }
+}
+
+class FormCard extends React.Component {
+  render() {
+    return (
+      <div className="card form-card">
+        <div className="card-divider">
+          <h3><Link to={`/organize/form/${this.props.form.id}`}>{this.props.form.title}</Link></h3>
+        </div>
+        <div className="card-section">
+          <TextTruncate text={this.props.form.description} line={3} />
+        </div>
+      </div>
+    )
+  }
+}
+
 
 class EmailEditor extends React.Component {
   constructor(props) {
@@ -153,11 +193,30 @@ class SignupStateFilterHeader extends React.Component {
   }
 }
 
+class FormStore extends RowDataStore {
+  constructor(actionStore) {
+    super();
+    this._actionStore = actionStore;
+    this._actionStore.on('update', (bundle) => {
+      this.setData(bundle.data);
+    });
+  }
+
+  allItems() {
+    return this.data.forms || [];
+  }
+}
+
 class ActionStore extends RowDataStore {
+  constructor() {
+    super();
+    this.formStore = new FormStore(this);
+  }
+
   reload(id) {
     return axios.get('/api/actions/'+id+'/')
       .then((results) => {
-        titles.setTitle('Action Report', results.data.name);
+        titles.setSubtitle(results.data.name);
         this.setData(results.data);
         return results;
       });
@@ -182,7 +241,6 @@ export default class ActionReport extends React.Component {
   }
 
   componentDidMount() {
-    titles.setTitle('Action Report', '');
     this.reload();
   }
 
@@ -237,6 +295,11 @@ export default class ActionReport extends React.Component {
         </Modal>
         <div className="row">
           <div className="small-12 columns">
+            <h3>Forms</h3>
+            <StoreBinding store={this.store.formStore}>
+              <FormCards />
+            </StoreBinding>
+            <h3>Activists</h3>
             <div className="top-bar">
               <div className="top-bar-left">
                 <ul className="menu">
