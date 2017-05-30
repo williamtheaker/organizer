@@ -4,6 +4,12 @@
 .data-table {
   td {
     padding: 1px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: small;
+  }
+
+  input {
+    margin: 0;
   }
 
   .react-gravatar {

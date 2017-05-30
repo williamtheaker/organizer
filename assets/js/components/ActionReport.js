@@ -198,7 +198,7 @@ export default class ActionReport extends React.Component {
     var columns = [
       {label: "Name",
        value: 'activist.name',
-       cell: ({row}) => <span><Gravatar email={row.activist.email} />{row.activist.name}</span>},
+       cell: ({row}) => <span><Gravatar size={24} email={row.activist.email} />{row.activist.name}</span>},
       {label: "E-mail",
        value: 'activist.email'},
       {label: "Status",

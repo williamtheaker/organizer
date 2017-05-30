@@ -31,7 +31,7 @@ export class Row extends React.Component {
     });
     return (
       <tr>
-        <th><input type="checkbox" value={this.props.row.id} onChange={(evt) => this.props.onSelectedChange(evt.target.checked)} checked={this.props.selected}/></th>
+        <td><input type="checkbox" value={this.props.row.id} onChange={(evt) => this.props.onSelectedChange(evt.target.checked)} checked={this.props.selected}/></td>
         {cells}
       </tr>
     )
