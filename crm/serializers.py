@@ -30,9 +30,16 @@ class FieldSerializer(serializers.HyperlinkedModelSerializer):
         model = models.FormField
         fields = ('id', 'name', 'control_type', 'control_data')
 
+class ActionFormSerializer(serializers.HyperlinkedModelSerializer):
+    fields = FieldSerializer(many=True)
+    class Meta:
+        model = models.Form
+        fields = ('fields', 'title', 'description', 'id')
+
 class ActionSerializer(serializers.HyperlinkedModelSerializer):
     signups = SignupSerializer(many=True)
     fields = FieldSerializer(many=True)
+    forms = ActionFormSerializer(many=True)
     class Meta:
         model = models.Action
         fields = ('campaign', 'name', 'date', 'id', 'signups', 'forms', 'fields')
