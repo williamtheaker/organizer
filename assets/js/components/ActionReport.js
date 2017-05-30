@@ -11,17 +11,19 @@ import { Table } from './DataTable'
 import { Form, Text, FormInput } from 'react-form'
 import { MarkdownEditor } from 'react-markdown-editor'
 import Gravatar from 'react-gravatar'
+import Select from 'react-select'
+import 'react-select/dist/react-select.css';
 
 function SignupStateSelect(props) {
+  const options = [
+    {value: '0', label: 'Prospective'},
+    {value: '1', label: 'Confirmed'},
+    {value: '2', label: 'Attended'},
+    {value: '3', label: 'No-Show'},
+    {value: '4', label: 'Cancelled'}
+  ];
   return (
-    <select {...props}>
-      <option value=''>All</option>
-      <option value='0'>Prospective</option>
-      <option value='1'>Confirmed</option>
-      <option value='2'>Attended</option>
-      <option value='3'>No-Show</option>
-      <option value='4'>Cancelled</option>
-    </select>
+    <Select options={options} {...props} />
   )
 }
 
@@ -113,7 +115,7 @@ class BulkStateEditor extends React.Component {
     return (
       <div>
         <SignupStateSelect
-          onChange={(e) => this.setState({nextState: e.target.value})}
+          onChange={(v) => this.setState({nextState: v})}
           value={this.state.nextState} />
         <input type="button" className="button" value={"Update "+this.props.store_data.selected.length+" rows"} onClick={() => this.save()} disabled={this.state.saving}/>
       </div>
@@ -128,21 +130,24 @@ class SignupStateFilterHeader extends React.Component {
     this.handleChanged = this.handleChanged.bind(this);
   }
 
-  handleChanged(evt) {
-    if (evt.target.value == '') {
+  handleChanged(selectValue) {
+    console.log('selection', selectValue);
+    if (selectValue.length == 0) {
       this.props.onFilterChanged(() => true);
     } else {
-      var v = evt.target.value;
-      this.props.onFilterChanged((d) => d == v);
+      var values = _.map(selectValue, ({value}) => value);
+      console.log(values);
+      this.props.onFilterChanged(
+        (d) => _.find(values, (v) => v == d));
     }
-    this.setState({value: evt.target.value});
+    this.setState({value: selectValue});
   }
 
   render() {
     return (
       <th>
         {this.props.column.label}
-        <SignupStateSelect onChange={this.handleChanged} value={this.state.value} />
+        <SignupStateSelect multi={true} onChange={this.handleChanged} value={this.state.value} />
       </th>
     );
   }
