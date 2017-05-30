@@ -71,9 +71,23 @@ class EmailEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      sending: false
+      sending: false,
+      preview: ""
     };
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  updatePreview(contents) {
+    var data = {
+      subject: "Preview",
+      body: contents,
+      signups: _.map(this.props.store_data.selected, ({id}) => id)
+    };
+    axios.post('/api/actions/'+this.props.action_id+'/email_activists_preview/',
+      data, {headers: {'X-CSRFToken': csrftoken}})
+      .then((r) => {
+        this.setState({preview: r.data.body});
+      });
   }
 
   handleSubmit(values) {
@@ -113,11 +127,12 @@ class EmailEditor extends React.Component {
                       iconsSet="font-awesome"
                       initialContent=""
                       content={getValue()}
-                      onContentChange={setValue}/>
+                      onContentChange={(v) => {this.updatePreview(v);setValue(v);}}/>
                   )}
                 </FormInput>
               </label>
               <input type="submit" value="Send" className="button" disabled={this.state.sending} />
+              <pre>{this.state.preview}</pre>
             </form>
           )
         }}

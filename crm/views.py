@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import logging
 from django.shortcuts import render
 from django.conf import settings
-from django.template import loader
+from django.template import loader, engines
 from django.core.mail import EmailMessage
 from . import models
 from rest_framework import viewsets
@@ -53,6 +53,35 @@ class ActionViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ActionSerializer
 
     @detail_route(methods=['post'])
+    def email_activists_preview(self, request, pk=None):
+        action_obj = self.get_object()
+        serializer = serializers.EmailSerializer(data={
+            'subject': request.data.get('subject', None),
+            'body': request.data.get('body', None),
+            'signups': request.data.get('signups', None)
+        })
+        if serializer.is_valid():
+            templated_body = engines['django'].from_string(serializer.validated_data.get('body'))
+            email_template = loader.get_template('email.eml')
+            signups = models.Signup.objects.filter(
+                action=action_obj,
+                pk__in=serializer.validated_data.get('signups')
+            )
+            s = signups[0]
+            cxt = {
+                'action': action_obj,
+                'signup': s,
+                'activist': s.activist
+            }
+            generated_email = email_template.render({
+                'signup': s,
+                'body': templated_body.render(cxt)
+            })
+            return Response({'body': generated_email})
+        else:
+            return Response({'errors': serializer.errors}, 400)
+
+    @detail_route(methods=['post'])
     def email_activists(self, request, pk=None):
         action_obj = self.get_object()
         serializer = serializers.EmailSerializer(data={
@@ -61,15 +90,21 @@ class ActionViewSet(viewsets.ModelViewSet):
             'signups': request.data.get('signups', None)
         })
         if serializer.is_valid():
+            templated_body = engines['django'].from_string(serializer.validated_data.get('body'))
             email_template = loader.get_template('email.eml')
             signups = models.Signup.objects.filter(
                 action=action_obj,
                 pk__in=serializer.validated_data.get('signups')
             )
             for s in signups:
+                cxt = {
+                    'action': action_obj,
+                    'signup': s,
+                    'activist': s.activist
+                }
                 generated_email = email_template.render({
                     'signup': s,
-                    'body': serializer.validated_data.get('body')
+                    'body': templated_body.render(cxt)
                 })
                 email_obj = EmailMessage(
                     subject=serializer.validated_data.get('subject'),
@@ -79,7 +114,7 @@ class ActionViewSet(viewsets.ModelViewSet):
                 )
                 email_obj.encoding = 'utf-8'
                 email_obj.send()
-            return Response({})
+            return Response({'body': generated_email})
         else:
             return Response({'errors': serializer.errors}, 400)
 
