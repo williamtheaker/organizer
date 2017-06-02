@@ -185,4 +185,4 @@ def index(request, *args, **kwargs):
 @xframe_options_exempt
 def view_form(request, form_id):
     form = models.Form.objects.get(pk=form_id)
-    return render(request, 'form.html', {'form_obj': form})
+    return render(request, 'form.html', {'form_obj': form, 'settings': settings})
