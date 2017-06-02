@@ -34,14 +34,22 @@ export default class FormView extends React.Component {
     this.setState({form: {id:0, title: '', description: '', fields: []}, submitted: false});
     axios.get('/api/forms/'+this.props.match.params.id+'/')
       .then((results) => {
-        console.log(results);
+        Raven.captureBreadcrumb({
+          message: 'Form loaded',
+          category: 'action',
+          data: results.data
+        });
         this.setState({form: results.data});
         titles.setTitle(results.data.action.name, results.data.title);
       });
   }
 
   handleSubmit(values) {
-    console.log('submit!', values);
+    Raven.captureBreadcrumb({
+      message: "Form submitted",
+      category: 'action',
+      data: values
+    });
     var data = {
       name: values.name,
       email: values.email,
@@ -69,6 +77,7 @@ export default class FormView extends React.Component {
           this._form.setAllTouched(true, {errors: errors});
         } else {
           this.setState({serverError: "Recieved "+error.response.status+" from server. Try again."});
+          Raven.captureException(error);
         }
       });
   }
