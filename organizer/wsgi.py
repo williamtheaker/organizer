@@ -10,11 +10,9 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 import os
 
 from django.core.wsgi import get_wsgi_application
-from whitenoise.django import DjangoWhiteNoise
 from raven.contrib.django.raven_compat.middleware.wsgi import Sentry
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "organizer.settings")
 
 application = get_wsgi_application()
 application = Sentry(application)
-application = DjangoWhiteNoise(application)

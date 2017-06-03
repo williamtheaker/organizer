@@ -60,6 +60,7 @@ MARKDOWNIFY_WHITELIST_TAGS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -152,7 +153,7 @@ WEBPACK_LOADER = {
     }
 }
 
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ANYMAIL = {
     'MAILGUN_API_KEY': os.environ.get('MAILGUN_API_KEY', None),
@@ -176,3 +177,5 @@ REST_FRAMEWORK = {
 RAVEN_CONFIG = {
     'dsn': os.environ.get("SENTRY_DSN")
 }
+
+DEFAULT_CHARSET="utf-8"

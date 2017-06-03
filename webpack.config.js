@@ -22,6 +22,7 @@ module.exports = {
         path: path.resolve('./assets/bundles/'), 
         //naming convention webpack should use for your files
         filename: '[name]-[hash].js', 
+        publicPath: '/static/bundles/'
     },
     
     plugins: [
@@ -52,11 +53,17 @@ module.exports = {
                 loader: 'babel-loader', 
                 query: {
                     //specify that we will be dealing with React code
-                    presets: ['react', 'es2015'] 
+                    presets: ['react', ['es2015', {modules: false}]],
+                    plugins: ['syntax-dynamic-import']
                 }
             },
             {test: /\.s?css$/, loader: ExtractTextPlugin.extract({loader: 'css-loader!sass-loader'})},
-            {test: /\.(png|jpg)$/, loader: 'url-loader'}
+            {test: /\.(png|jpg)$/,
+              loaders: [
+                'file-loader?name=[path][name].[hash].[ext].webp',
+                'webp-loader'
+              ]
+            }
         ]
     },
     
