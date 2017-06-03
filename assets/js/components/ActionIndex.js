@@ -5,7 +5,7 @@ import { Table } from './DataTable'
 import { Link } from 'react-router-dom'
 import { titles } from '../TitleManager'
 
-export default class ActionIndex extends React.PureComponent {
+export default class ActionIndex extends React.Component {
   constructor(props) {
     super(props);
     this.store = new APIListDataStore('/api/actions/')

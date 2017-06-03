@@ -2,7 +2,7 @@ import React from 'react'
 import objectPath from 'object-path'
 import _ from 'underscore'
 
-export class Cell extends React.PureComponent {
+export class Cell extends React.Component {
   render() {
     const value = objectPath.get(this.props.row, this.props.column.value);
     if (typeof value == "object") {
@@ -38,7 +38,7 @@ export class Row extends React.Component {
   }
 }
 
-export class Header extends React.PureComponent {
+export class Header extends React.Component {
   render() {
     return (
       <th>{this.props.column.label}</th>
@@ -46,7 +46,7 @@ export class Header extends React.PureComponent {
   }
 }
 
-export class Table extends React.PureComponent {
+export class Table extends React.Component {
   defaultColumns() {
     return _.mapObject(this.props.store_data.visible[0], (val, key) => {
       return {

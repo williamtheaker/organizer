@@ -2,7 +2,7 @@ import React from 'react'
 import { Form, Text, Checkbox, Select } from 'react-form'
 import _ from 'underscore'
 
-export default class FormFieldForm extends React.PureComponent {
+export default class FormFieldForm extends React.Component {
   render() {
     var inputs = [];
     _.each(this.props.fields, (field) => {

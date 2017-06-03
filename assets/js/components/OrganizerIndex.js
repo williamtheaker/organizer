@@ -11,7 +11,7 @@ import FormEditor from './ActionReport'
 import ActionIndex from './ActionIndex'
 import ActivistIndex from './ActivistIndex'
 
-class OrganizerDashboard extends React.PureComponent {
+class OrganizerDashboard extends React.Component {
   constructor(props) {
     super(props);
     this.store = new APIListDataStore('/api/activists/recent/')
