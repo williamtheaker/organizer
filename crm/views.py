@@ -7,6 +7,7 @@ from django.conf import settings
 from django.template import loader, engines
 from django.core.mail import EmailMessage
 from . import models
+from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
@@ -33,6 +34,21 @@ class ActivistViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ActivistSerializer
 
     @list_route(methods=['get'])
+    def search(self, request):
+        results = models.Activist.objects.filter(
+            Q(name__icontains=request.GET.get('q')) |
+            Q(email__icontains=request.GET.get('q'))
+        ).order_by('name')
+        page = self.paginate_queryset(results)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(results, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
     def recent(self, request):
         recent_activists = models.Activist.objects.all().order_by('-created')[0:10]
         page = self.paginate_queryset(recent_activists)
@@ -46,7 +62,11 @@ class ActivistViewSet(viewsets.ModelViewSet):
 
 class SignupViewSet(viewsets.ModelViewSet):
     queryset = models.Signup.objects.all()
-    serializer_class = serializers.SignupSerializer
+
+    def get_serializer_class(self):
+        if self.request.method in ('GET',):
+            return serializers.SignupSerializer
+        return serializers.WriteSignupSerializer
 
 class ActionViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)

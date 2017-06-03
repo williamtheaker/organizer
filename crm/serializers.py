@@ -11,7 +11,7 @@ class ActivistSerializer(serializers.HyperlinkedModelSerializer):
     address = serializers.CharField(source='address.raw')
     class Meta:
         model = models.Activist
-        fields = ('name',  'email', 'address', 'id', 'created')
+        fields = ('name',  'email', 'address', 'id', 'created', 'url')
 
 class FormResponseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -20,10 +20,15 @@ class FormResponseSerializer(serializers.HyperlinkedModelSerializer):
 
 class SignupSerializer(serializers.HyperlinkedModelSerializer):
     activist = ActivistSerializer()
-    responses = FormResponseSerializer()
+    responses = FormResponseSerializer(read_only=True)
     class Meta:
         model = models.Signup
-        fields = ('activist', 'state', 'state_name', 'responses', 'id')
+        fields = ('action', 'activist', 'state', 'state_name', 'responses', 'id')
+
+class WriteSignupSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = models.Signup
+        fields = ('action', 'activist', 'state', 'id')
 
 class FieldSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -42,7 +47,8 @@ class ActionSerializer(serializers.HyperlinkedModelSerializer):
     forms = ActionFormSerializer(many=True)
     class Meta:
         model = models.Action
-        fields = ('campaign', 'name', 'date', 'id', 'signups', 'forms', 'fields')
+        fields = ('campaign', 'name', 'date', 'id', 'signups', 'forms',
+                'fields', 'url')
 
 class FormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)

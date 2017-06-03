@@ -8,10 +8,9 @@ import Footer from './components/Footer'
 import Canvas from './components/Canvas'
 import Header from './components/Header'
 import FormView from './components/FormView'
+import Lazy from './components/Lazy'
 
-import LazyRoute from 'lazy-route'
-
-const OrganizerIndex = (props) => <LazyRoute {...props} component={import('./components/OrganizerIndex')} />
+const LazyOrganizerIndex = Lazy(import('./components/OrganizerIndex'))
 
 class App extends React.PureComponent {
   constructor(props) {
@@ -34,7 +33,7 @@ class App extends React.PureComponent {
               <Header title={this.state.title} subtitle={this.state.subtitle} />
               <Canvas>
                 <Route exact path="/crm/f/:id" component={FormView}/>
-                <Route path="/organize" render={OrganizerIndex} />
+                <Route path="/organize" component={LazyOrganizerIndex} />
               </Canvas>
             </div>
           </div>

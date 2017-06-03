@@ -15,6 +15,7 @@ import Select from 'react-select'
 import 'react-select/dist/react-select.css'
 import { Link } from 'react-router-dom'
 import TextTruncate from 'react-text-truncate'
+import Autocomplete from 'react-autocomplete'
 
 function SignupStateSelect(props) {
   const options = [
@@ -29,7 +30,47 @@ function SignupStateSelect(props) {
   )
 }
 
-class FormCards extends React.Component {
+class ActivistAutocomplete extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      items: [],
+      value: "",
+      item: undefined
+    };
+
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(evt) {
+    const q = evt.target.value;
+    this.setState({value: q});
+    axios.get('/api/activists/search/', {params: {q: q}})
+      .then((response) => {
+        this.setState({items: response.data.results});
+      });
+  }
+
+  render() {
+    return (
+      <Autocomplete
+        items={this.state.items}
+        onChange={this.handleChange}
+        value={this.state.value}
+        getItemValue={(item) => item.name}
+        renderItem={(item, isHighlighted) =>
+          <div>{item.name} - {item.email}</div>
+        }
+        onSelect={(val, item) => {
+          this.setState({value: item.name, selection: item});
+          this.props.onSelected(item);
+        }}
+      />
+    )
+  }
+}
+
+class FormCards extends React.PureComponent {
   render() {
     const cards = _.map(this.props.store_data.visible, (row) => (
       <FormCard key={row.id} form={row} />
@@ -51,7 +92,7 @@ class FormCards extends React.Component {
   }
 }
 
-class FormCard extends React.Component {
+class FormCard extends React.PureComponent {
   render() {
     return (
       <div className="card form-card">
@@ -67,7 +108,7 @@ class FormCard extends React.Component {
 }
 
 
-class EmailEditor extends React.Component {
+class EmailEditor extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -141,7 +182,7 @@ class EmailEditor extends React.Component {
   }
 }
 
-class BulkStateEditor extends React.Component {
+class BulkStateEditor extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -178,7 +219,7 @@ class BulkStateEditor extends React.Component {
   }
 }
 
-class SignupStateFilterHeader extends React.Component {
+class SignupStateFilterHeader extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {value: ''};
@@ -246,10 +287,10 @@ class ActionStore extends RowDataStore {
   }
 }
 
-export default class ActionReport extends React.Component {
+export default class ActionReport extends React.PureComponent {
   constructor(props) {
     super(props);
-    this.state = {showBulkStateEdit: false, columns: [], showEmailModal: false};
+    this.state = {showBulkStateEdit: false, columns: [], showEmailModal: false, showAddActivists: false};
     this.handleFiltersChanged = this.handleFiltersChanged.bind(this);
     this.store = new ActionStore();
     this.store.on('update', () => this.updateColumns());
@@ -288,6 +329,19 @@ export default class ActionReport extends React.Component {
     this.setState({columns: columns});
   }
 
+  onAddActivistSelected(item) {
+    const data = {
+      activist: item.url,
+      responses: {},
+      state: 0,
+      action: this.store.data.url
+    };
+    axios.post('/api/signups/', data, {headers: {'X-CSRFToken': csrftoken}})
+      .then((response) => {
+        this.reload();
+      });
+  }
+
   render() {
     // TODO: Add remove from action, send email buttons
     return (
@@ -318,8 +372,9 @@ export default class ActionReport extends React.Component {
             <div className="top-bar">
               <div className="top-bar-left">
                 <ul className="menu">
-                  <li><input type="search" placeholder="Search"/></li>
-                  <li><button type="button" className="button">Search</button></li>
+                  <li>
+                    <ActivistAutocomplete inputProps={{placeholder:"Add activist", type:"text"}} onSelected={(a) => this.onAddActivistSelected(a)}/>
+                  </li>
                 </ul>
               </div>
               <div className="top-bar-right">
