@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-export default class Header extends React.Component {
+export default class Header extends React.PureComponent {
   render() {
     return (
       <header className="row">

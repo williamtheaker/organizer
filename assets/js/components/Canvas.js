@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default class Canvas extends React.Component {
+export default class Canvas extends React.PureComponent {
   render() {
     return (
       <div className="row canvas">
