@@ -14,6 +14,8 @@ module.exports = {
     entry: {
       main: ['babel-polyfill', './assets/js/index'], 
     },
+
+    devtool: 'source-map',
     
     output: {
         //where you want your compiled bundle to be stored
@@ -25,12 +27,6 @@ module.exports = {
     plugins: [
         //tells webpack where to store data about your bundles.
         new BundleTracker({filename: './webpack-stats.json'}), 
-        //makes jQuery available in every module
-        new webpack.ProvidePlugin({ 
-            $: 'jquery',
-            jQuery: 'jquery',
-            'window.jQuery': 'jquery' 
-        }),
         new webpack.optimize.CommonsChunkPlugin({
           name: 'vendor',
           minChunks: function(module) {
