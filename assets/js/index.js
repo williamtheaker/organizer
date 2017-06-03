@@ -13,7 +13,7 @@ import LazyRoute from 'lazy-route'
 
 const OrganizerIndex = (props) => <LazyRoute {...props} component={import('./components/OrganizerIndex')} />
 
-class App extends React.Component {
+class App extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
