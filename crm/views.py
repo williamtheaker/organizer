@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from django.views.decorators.clickjacking import xframe_options_exempt
 from . import serializers
 from django.contrib.auth.models import User
+import json
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -185,4 +186,9 @@ def index(request, *args, **kwargs):
 @xframe_options_exempt
 def view_form(request, form_id):
     form = models.Form.objects.get(pk=form_id)
-    return render(request, 'form.html', {'form_obj': form, 'settings': settings})
+    serializer = serializers.FormSerializer(form, context={'request': request})
+    return render(request, 'form.html', {
+        'form_obj': form, 
+        'settings': settings,
+        'form_data': json.dumps(serializer.data)
+    })

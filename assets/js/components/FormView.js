@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom'
 
 import FormFieldForm from './FormFieldForm'
 
-export default class FormView extends React.Component {
+export default class FormView extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -32,16 +32,26 @@ export default class FormView extends React.Component {
 
   reload() {
     this.setState({form: {id:0, title: '', description: '', fields: []}, submitted: false});
-    axios.get('/api/forms/'+this.props.match.params.id+'/')
-      .then((results) => {
-        Raven.captureBreadcrumb({
-          message: 'Form loaded',
-          category: 'action',
-          data: results.data
-        });
-        this.setState({form: results.data});
-        titles.setTitle(results.data.action.name, results.data.title);
+    if (INLINE_FORM_DATA) {
+      Raven.captureBreadcrumb({
+        message: 'Form loaded from cache',
+        category: 'action',
+        data: INLINE_FORM_DATA
       });
+      this.setState({form: INLINE_FORM_DATA});
+      titles.setTitle(INLINE_FORM_DATA.action.name, INLINE_FORM_DATA.title);
+    } else {
+      axios.get('/api/forms/'+this.props.match.params.id+'/')
+        .then((results) => {
+          Raven.captureBreadcrumb({
+            message: 'Form loaded',
+            category: 'action',
+            data: results.data
+          });
+          this.setState({form: results.data});
+          titles.setTitle(results.data.action.name, results.data.title);
+        });
+    }
   }
 
   handleSubmit(values) {

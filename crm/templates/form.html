@@ -13,4 +13,7 @@
 <link rel="alternate" type="application/json+oembed"
                       href="https://organizing.eastbayforward.org/api/forms/{{form_obj.id}}/embed"
                       />
+<script>
+var INLINE_FORM_DATA = {{form_data|safe}};
+</script>
 {% endblock %}
