@@ -32,7 +32,7 @@ export default class FormView extends React.PureComponent {
 
   reload() {
     this.setState({form: {id:0, title: '', description: '', fields: []}, submitted: false});
-    if (INLINE_FORM_DATA) {
+    if (typeof INLINE_FORM_DATA != "undefined") {
       Raven.captureBreadcrumb({
         message: 'Form loaded from cache',
         category: 'action',
