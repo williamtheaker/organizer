@@ -4,15 +4,19 @@ var webpack = require('webpack')
 var BundleTracker = require('webpack-bundle-tracker')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+var merge = require('webpack-merge');
+var LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 
-module.exports = {
+const common = {
     //the base directory (absolute path) for resolving the entry option
     context: __dirname,
     //the entry point we created earlier. Note that './' means 
     //your current directory. You don't have to specify the extension  now,
     //because you will specify extensions later in the `resolve` section
     entry: {
-      main: ['babel-polyfill', './assets/js/index'], 
+      main: [
+        './assets/js/index',
+      ], 
     },
 
     devtool: 'source-map',
@@ -26,6 +30,7 @@ module.exports = {
     },
     
     plugins: [
+        new webpack.NamedModulesPlugin(),
         //tells webpack where to store data about your bundles.
         new BundleTracker({filename: './webpack-stats.json'}), 
         new webpack.optimize.CommonsChunkPlugin({
@@ -35,10 +40,12 @@ module.exports = {
           }
         }),
         new webpack.optimize.CommonsChunkPlugin({
-          names: 'manifest'
+          names: 'manifest',
+          minChunks: Infinity
         }),
         new ExtractTextPlugin('[name]-[hash].css'),
-        new OptimizeCssAssetsPlugin()
+        new OptimizeCssAssetsPlugin(),
+        new LodashModuleReplacementPlugin()
     ],
     
     module: {
@@ -50,12 +57,7 @@ module.exports = {
                 //node_modules. That would take a long time.
                 exclude: /node_modules/, 
                 //use the babel loader 
-                loader: 'babel-loader', 
-                query: {
-                    //specify that we will be dealing with React code
-                    presets: ['react', ['es2015', {modules: false}]],
-                    plugins: ['syntax-dynamic-import']
-                }
+                loaders: ['babel-loader'] 
             },
             {test: /\.s?css$/, loader: ExtractTextPlugin.extract({loader: 'css-loader!sass-loader'})},
             {test: /\.(png|jpg)$/,
@@ -72,5 +74,45 @@ module.exports = {
         //modulesDirectories: ['node_modules'],
         //extensions that should be used to resolve modules
         extensions: ['.js', '.jsx'] 
-    }   
+    }
+}
+
+const production = merge(common, {
+});
+
+const development = merge(common, {
+  entry: {
+    webpack: [
+      'react-hot-loader/patch',
+      'webpack-dev-server/client?http://localhost:8080',
+      'webpack/hot/only-dev-server',
+    ]
+  },
+  devServer: {
+    hot: true,
+    contentBase: path.resolve(__dirname, 'assets'),
+    publicPath: '/',
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
+    }
+  },
+  output: {
+    publicPath: 'http://localhost:8080/'
+  },
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
+  ]
+});
+
+const TARGET = process.env.NODE_ENV;
+
+switch (TARGET) {
+  case 'production':
+    module.exports = production;
+    break;
+  default:
+    module.exports = development;
 }

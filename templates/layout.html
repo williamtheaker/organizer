@@ -28,5 +28,8 @@
   </body>
   {% render_bundle 'manifest' 'js' %}
   {% render_bundle 'vendor' 'js' %}
+  {% if settings.DEBUG %}
+    {% render_bundle 'webpack' 'js' %}
+  {% endif %}
   {% render_bundle 'main' 'js' %}
 </html>
