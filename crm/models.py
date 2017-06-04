@@ -79,7 +79,7 @@ class Form(models.Model):
     action = models.ForeignKey(Action, related_name='forms')
     title = models.CharField(max_length=200)
     description = models.TextField()
-    active = models.BooleanField()
+    active = models.BooleanField(default=True)
     next_state = models.IntegerField(choices=SignupState.choices())
 
     def get_absolute_url(self):
