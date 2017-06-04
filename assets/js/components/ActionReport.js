@@ -1,7 +1,7 @@
 import React from 'react'
 import axios from 'axios'
 import { titles } from '../TitleManager'
-import _ from 'underscore'
+import _ from 'lodash'
 import Modal from 'react-modal'
 import { csrftoken } from '../Django'
 import EventEmitter from 'events'
@@ -16,6 +16,7 @@ import 'react-select/dist/react-select.css'
 import { Link } from 'react-router-dom'
 import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
+import Switch from 'rc-switch'
 
 function SignupStateSelect(props) {
   const options = [
@@ -73,7 +74,7 @@ class ActivistAutocomplete extends React.PureComponent {
 class FormCards extends React.PureComponent {
   render() {
     const cards = _.map(this.props.store_data.visible, (row) => (
-      <FormCard key={row.id} form={row} />
+      <FormCard key={row.id} form={row} action_id={this.props.action_id} />
     ));
     return (
       <div>
@@ -83,7 +84,7 @@ class FormCards extends React.PureComponent {
             <h3>Create a new form</h3>
           </div>
           <div className="card-section">
-            Create a new form to process data for an action
+            <Link to={`/organize/action/${this.props.action_id}/form/new`}>Create a new form to process data for an action</Link>
           </div>
         </div>
         <br style={{clear:'both'}} />
@@ -93,14 +94,37 @@ class FormCards extends React.PureComponent {
 }
 
 class FormCard extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      checked: props.form.active,
+    };
+    this.doChange = this.doChange.bind(this);
+  }
+
+  doChange(checked) {
+    const config = {
+      headers: {'X-CSRFToken': csrftoken}
+    };
+    const data = {
+      active: checked
+    };
+    axios.patch(`/api/forms/${this.props.form.id}/`, data, config)
+      .then((response) => {
+        this.setState({checked: response.data.active});
+      });
+  }
+
   render() {
     return (
       <div className="card form-card">
         <div className="card-divider">
-          <h3><Link to={`/organize/form/${this.props.form.id}`}>{this.props.form.title}</Link></h3>
+          <h3><Link to={`/organize/action/${this.props.action_id}/form/${this.props.form.id}`}>{this.props.form.title}</Link></h3>
+          <Switch onChange={this.doChange} checked={this.state.checked} checkedChildren="On" unCheckedChildren="Off"/>
         </div>
         <div className="card-section">
           <TextTruncate text={this.props.form.description} line={3} />
+          <Link to={`/crm/f/${this.props.form.id}/`}><i className="fa fa-link" /> Public Link</Link>
         </div>
       </div>
     )
@@ -366,7 +390,7 @@ export default class ActionReport extends React.PureComponent {
           <div className="small-12 columns">
             <h3>Forms</h3>
             <StoreBinding store={this.store.formStore}>
-              <FormCards />
+              <FormCards action_id={this.props.match.params.id} />
             </StoreBinding>
             <h3>Activists</h3>
             <div className="top-bar">

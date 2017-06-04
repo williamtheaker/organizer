@@ -1,6 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import app_css from '../scss/app.scss'
+import 'react-select/dist/react-select.css'
+import 'rc-switch/assets/index.css'
 
 import { AppContainer } from 'react-hot-loader'
 import App from './components/App'

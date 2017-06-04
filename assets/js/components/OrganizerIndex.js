@@ -7,7 +7,7 @@ import { Route, Link, Switch } from 'react-router-dom'
 import MenuNavLink from './MenuNavLink'
 
 import ActionReport from './ActionReport'
-import FormEditor from './ActionReport'
+import FormEditor from './FormEditor'
 import ActionIndex from './ActionIndex'
 import ActivistIndex from './ActivistIndex'
 
@@ -61,7 +61,7 @@ export default class OrganizerIndex extends React.Component {
           </ul>
           <Switch>
             <Route exact path={`${this.props.match.url}/action`} component={ActionIndex}/>
-            <Route path={`${this.props.match.url}/form/:id`} component={FormEditor}/>
+            <Route path={`${this.props.match.url}/action/:action_id/form/:id`} component={FormEditor}/>
             <Route path={`${this.props.match.url}/action/:id`} component={ActionReport}/>
             <Route exact path={`${this.props.match.url}/activist`} component={ActivistIndex}/>
             <Route component={OrganizerDashboard}/>
