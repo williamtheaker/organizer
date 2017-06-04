@@ -142,7 +142,12 @@ class ActionViewSet(viewsets.ModelViewSet):
 class FormViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Form.objects.all()
-    serializer_class = serializers.FormSerializer
+
+    def get_serializer_class(self):
+        if self.request.method in ('GET',):
+            return serializers.FormSerializer
+        return serializers.WriteFormSerializer
+
 
     @detail_route(methods=['get'], permission_classes=(AllowAny,))
     def embed(self, request, pk=None):

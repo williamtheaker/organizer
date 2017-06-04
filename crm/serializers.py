@@ -33,13 +33,13 @@ class WriteSignupSerializer(serializers.HyperlinkedModelSerializer):
 class FieldSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.FormField
-        fields = ('id', 'name', 'control_type', 'control_data')
+        fields = ('id', 'name', 'control_type', 'control_data', 'form', 'url')
 
 class ActionFormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
     class Meta:
         model = models.Form
-        fields = ('fields', 'title', 'description', 'id')
+        fields = ('fields', 'title', 'description', 'id', 'url', 'active')
 
 class ActionSerializer(serializers.HyperlinkedModelSerializer):
     signups = SignupSerializer(many=True)
@@ -50,12 +50,18 @@ class ActionSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('campaign', 'name', 'date', 'id', 'signups', 'forms',
                 'fields', 'url')
 
+class WriteFormSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = models.Form
+        fields = ('action', 'title', 'description', 'next_state', 'active', 'url')
+
 class FormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
     action = ActionSerializer()
     class Meta:
         model = models.Form
-        fields = ('fields', 'action', 'title', 'description')
+        fields = ('fields', 'action', 'title', 'description', 'url', 'id',
+        'next_state', 'active')
 
 class CampaignSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
