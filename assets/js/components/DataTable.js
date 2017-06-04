@@ -1,6 +1,6 @@
 import React from 'react'
 import objectPath from 'object-path'
-import _ from 'underscore'
+import _ from 'lodash'
 
 export class Cell extends React.Component {
   render() {
@@ -48,7 +48,7 @@ export class Header extends React.Component {
 
 export class Table extends React.Component {
   defaultColumns() {
-    return _.mapObject(this.props.store_data.visible[0], (val, key) => {
+    return _.map(_.keys(this.props.store_data.visible[0]), (key) => {
       return {
         label: key,
         value: key

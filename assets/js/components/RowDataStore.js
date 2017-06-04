@@ -1,5 +1,5 @@
 import EventEmitter from 'events'
-import _ from 'underscore'
+import _ from 'lodash'
 import memoize from 'memoizee'
 import objectPath from 'object-path'
 import axios from 'axios'
@@ -39,7 +39,7 @@ export default class RowDataStore extends EventEmitter {
   }
 
   visibleItems() {
-    return _.filter(this.allItems(), this._runFilters, this)
+    return _.filter(this.allItems(), _.bind(this._runFilters, this))
   }
 
   selectedItems() {
@@ -88,7 +88,7 @@ export default class RowDataStore extends EventEmitter {
 
   _runFilters(row) {
     return _.every(
-      _.pairs(this.filters),
+      _.toPairs(this.filters),
       ([fieldName, filterFunc]) => {
         return filterFunc(objectPath.get(row, fieldName));
       }

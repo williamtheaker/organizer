@@ -1,6 +1,6 @@
 import React from 'react'
 import { Form, Text, Checkbox, Select } from 'react-form'
-import _ from 'underscore'
+import _ from 'lodash'
 
 export default class FormFieldForm extends React.Component {
   render() {
