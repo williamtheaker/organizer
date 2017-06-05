@@ -1,5 +1,7 @@
 var config = require('./webpack.config')
 var merge = require('webpack-merge')
+var path = require('path')
+var webpack = require('webpack')
 
 module.exports = merge(config, {
   entry: {
