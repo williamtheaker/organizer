@@ -1,14 +1,15 @@
 import React from 'react'
-import { APIListDataStore } from './RowDataStore'
+import { ModelDataStore } from './RowDataStore'
 import StoreBinding from './StoreBinding'
 import { Table } from './DataTable'
 import { Link } from 'react-router-dom'
 import { titles } from '../TitleManager'
+import { Action } from '../API'
 
 export default class ActionIndex extends React.Component {
   constructor(props) {
     super(props);
-    this.store = new APIListDataStore('/api/actions/')
+    this.store = new ModelDataStore(Action)
     this.store.reload();
   }
 
@@ -22,7 +23,7 @@ export default class ActionIndex extends React.Component {
        value: "name",
        cell: ({row:{id, name}}) => <Link to={`/organize/action/${id}`}>{name}</Link>},
       {label: "Date",
-       value: "date"},
+       value: 'date'},
       {label: "Signups",
        value: "signups.length"}
     ];

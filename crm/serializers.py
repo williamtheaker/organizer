@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from . import models
 from django.contrib.auth.models import User
+import address
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -77,3 +78,12 @@ class EmailSerializer(serializers.Serializer):
     subject = serializers.CharField()
     body = serializers.CharField()
     signups = serializers.ListSerializer(child=serializers.IntegerField())
+
+class CitySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = address.models.Locality
+        fields = ('name', 'id')
+
+class AddActivistSerializer(serializers.Serializer):
+    activists = serializers.HyperlinkedRelatedField(many=True,
+            view_name='activist-detail', read_only=False, queryset=models.Activist.objects.all())

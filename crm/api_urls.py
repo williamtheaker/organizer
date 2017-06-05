@@ -10,6 +10,7 @@ router.register(r'campaigns', views.CampaignViewSet)
 router.register(r'signups', views.SignupViewSet)
 router.register(r'activists', views.ActivistViewSet)
 router.register(r'users', views.UserViewSet)
+router.register(r'cities', views.CityViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls))

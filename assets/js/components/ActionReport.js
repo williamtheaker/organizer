@@ -81,10 +81,10 @@ class FormCards extends React.PureComponent {
         {cards}
         <div className="card form-card">
           <div className="card-divider">
-            <h3>Create a new form</h3>
+            <h3><Link to={`/organize/action/${this.props.action_id}/form/new`}>Create a new form</Link></h3>
           </div>
           <div className="card-section">
-            <Link to={`/organize/action/${this.props.action_id}/form/new`}>Create a new form to process data for an action</Link>
+            Create a new form to process signups and data for an action
           </div>
         </div>
         <br style={{clear:'both'}} />
@@ -220,7 +220,7 @@ class BulkStateEditor extends React.PureComponent {
     this.setState({saving: true});
     _.each(this.props.store_data.selected, (row) => {
       var data = {
-        state: this.state.nextState
+        state: this.state.nextState.value
       };
       requests.push(axios.patch('/api/signups/'+row.id+'/', data, {headers: {'X-CSRFToken': csrftoken}}))
     });

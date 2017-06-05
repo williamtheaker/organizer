@@ -16,6 +16,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from . import serializers
 from django.contrib.auth.models import User
 import json
+import address
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -72,6 +73,22 @@ class ActionViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Action.objects.all()
     serializer_class = serializers.ActionSerializer
+
+    @detail_route(methods=['post'])
+    def bulk_add_activists(self, request, pk=None):
+        action_obj = self.get_object()
+        serializer = serializers.AddActivistSerializer(data={
+            'activists': request.data.get('activists', None)
+        })
+        if serializer.is_valid():
+            signups = map(lambda a:
+                    models.Signup.objects.get_or_create(activist_id=a,
+                        action=action_obj, defaults={'state':
+                            models.SignupState.prospective.value }),
+                        serializer.validated_data.get('activists'))
+            return Response()
+        else:
+            return Response({'errors': serializer.errors}, 400)
 
     @detail_route(methods=['post'])
     def email_activists_preview(self, request, pk=None):
@@ -204,6 +221,23 @@ class CampaignViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Campaign.objects.all()
     serializer_class = serializers.CampaignSerializer
+
+class CityViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = address.models.Locality.objects.all()
+    serializer_class = serializers.CitySerializer
+
+    @list_route(methods=['get'])
+    def search(self, request):
+        results = address.models.Locality.objects.filter(name__icontains=request.GET.get('q')).order_by('name')
+        page = self.paginate_queryset(results)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(results, many=True)
+        return Response(serializer.data)
 
 def index(request, *args, **kwargs):
     return render(request, 'index.html', {'settings':settings})
