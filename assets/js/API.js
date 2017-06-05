@@ -2,11 +2,14 @@ import { csrftoken } from './Django'
 import axios from 'axios'
 import _ from 'lodash'
 import moment from 'moment'
+import urljoin from 'url-join'
 
-const Client = axios.create({
+const axiosConfig = {
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken'
-});
+}
+
+const Client = axios.create(axiosConfig);
 
 export default Client;
 
@@ -38,25 +41,72 @@ const modelProxyHooks = {
   }
 }
 
-const createModel = ({name, url}) => {
-  const baseUrl = url || `/api/${name}/`
-  class ModelInstance {
+class Model {}
+
+const createModel = ({name, url, fields, instance_routes}) => {
+  const baseUrl = url || urljoin('/api', name)+'/'
+
+  class ModelInstance extends Model {
     constructor(data) {
+      super(data);
       this.loadFromJSON(data);
-      this.changed = {}
-      this.client = axios.create({baseURL: baseUrl});
       return new Proxy(this, modelProxyHooks);
+    }
+
+    getClient() {
+      if (this.isNew()) {
+        return axios.create({...axiosConfig, baseURL: baseUrl});
+      } else {
+        return axios.create({...axiosConfig, baseURL: urljoin(baseUrl, this.data.id)});
+      }
+    }
+
+    sync() {
+      const data = _.mapValues(this.changed, v => v.value)
+      if (this.isNew()) {
+        const newData = _.mapValues({...this.data, ...data}, (v, name) => (
+          this.encodeField(name, v)
+        ));
+        console.log("Creating new", newData);
+        return this.getClient().post('', newData)
+          .then(({data}) => {
+            this.loadFromJSON(data);
+            return this
+          })
+      } else {
+        console.log("Updating", data);
+        return this.getClient().patch(id, data);
+      }
+    }
+
+    loadFromJSON(data) {
+      if (data) {
+        this.data = data
+        this.changed = {}
+      }
+      this.changed = {}
+    }
+
+
+    encodeField(name, value) {
+      if (fields[name] && 'encode' in fields[name]) {
+        return fields[name].encode(value);
+      }
+      return value;
+    }
+
+    decodeField(name, value) {
+      if (fields[name] && 'decode' in fields[name]) {
+        return fields[name].decode(value);
+      }
+      return value;
     }
 
     get(property) {
       if (this.changed[property]) {
         return this.changed[property].value
       } else {
-        if (property in ModelInstance.fields) {
-          return ModelInstance.fields[property](this.data[property]);
-        } else {
-          return this.data[property]
-        }
+        return this.decodeField(property, this.data[property]);
       }
     }
 
@@ -64,22 +114,8 @@ const createModel = ({name, url}) => {
       return property in this.data
     }
 
-    loadFromJSON(data) {
-      if (data) {
-        this.data = data
-        this.changed = {}
-        this.isNew = false;
-      }
-    }
-
-    sync() {
-      const data = _.mapValues(this.changed, v => v.value)
-      if (this.isNew) {
-        return this.client.post('', data)
-          .then(response => this.data = r.data);
-      } else {
-        return this.client.patch(id, data);
-      }
+    isNew() {
+      return !('id' in this.data)
     }
 
     set(property, value) {
@@ -90,12 +126,17 @@ const createModel = ({name, url}) => {
       }
     }
 
-    static setFields(fields) {
-      ModelInstance.fields = fields;
+    static create(data) {
+      return new ModelInstance(data);
     }
 
     static getByID(id) {
-      return Client.get(`${baseUrl}/${id}`)
+      return Client.get(urljoin(baseUrl, id))
+        .then(response => new ModelInstance(response.data))
+    }
+
+    static getByUrl(url) {
+      return Client.get(url)
         .then(response => new ModelInstance(response.data))
     }
 
@@ -104,25 +145,57 @@ const createModel = ({name, url}) => {
         .then(response => _.map(response.data.results, (row) => new ModelInstance(row)))
     }
   }
-  ModelInstance.fields = [];
-  return ModelInstance;
+  // Add instance routes to model type
+  _.forIn(instance_routes, (route, name) => {
+    ModelInstance.prototype[name] = route;
+  });
+  return ModelInstance
 }
 
-class SchemaBase {
-  constructor() {
-    this.models = new Proxy({}, {
-      get(target, propKey, receiver) {
-        if (!(propKey in target)) {
-          target[propKey] = createModel({name: propKey});
-        }
-        return target[propKey];
+export let Action = createModel({
+  name: 'actions',
+  fields: {
+    'date': {decode:(d) => moment(d).format('dddd, MMMM Do YYYY, h:mm:ss a')}
+  },
+  instance_routes: {
+    bulk_add_activists(activists) {
+      const data = {
+        activists: _.map(activists, a => a.url)
       }
-    });
+      return this.getClient().post('bulk_add_activists/', data)
+    }
+  }
+})
+
+class HyperlinkRelationField {
+  constructor(modelKey) {
+    this.key = modelKey
+  }
+
+  encode(value) {
+    return value.url
+  }
+
+  decode(value) {
+    return Schema.models[this.modelKey].getByUrl(value)
   }
 }
 
-export let Schema = new SchemaBase();
-export let Activist = Schema.models.activists;
-Activist.setFields({
-  'created': (d) => moment(d).format('dddd, MMMM Do YYYY, h:mm:ss a')
+export let Activist = createModel({
+  name: 'activists',
+  fields: {
+    'date': {decode: (d) => moment(d).format('dddd, MMMM Do YYYY, h:mm:ss a')}
+  }}
+);
+
+export let Signup = createModel({
+  name: 'signups',
+  fields: {
+    'action': new HyperlinkRelationField('actions'),
+    'activist': new HyperlinkRelationField('activists')
+  }
 })
+
+if (module.hot) {
+  module.hot.decline();
+}
