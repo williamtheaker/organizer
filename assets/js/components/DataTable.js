@@ -48,7 +48,8 @@ export class Header extends React.Component {
 
 export class Table extends React.Component {
   defaultColumns() {
-    return _.map(_.keys(this.props.store_data.visible[0]), (key) => {
+    const firstItem = this.props.store_data.visible[0];
+    return _.map(_.keys(firstItem), (key) => {
       return {
         label: key,
         value: key
