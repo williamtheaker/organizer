@@ -6,9 +6,11 @@ import Footer from './Footer'
 import Canvas from './Canvas'
 import Header from './Header'
 import FormView from './FormView'
-import Lazy from './Lazy'
+import { asyncComponent } from 'react-async-component'
 
-const LazyOrganizerIndex = Lazy(import('./OrganizerIndex'))
+const LazyOrganizerIndex = asyncComponent({
+  resolve: () => import('./OrganizerIndex').then(m => m.default)
+});
 
 export default class App extends React.PureComponent {
   constructor(props) {

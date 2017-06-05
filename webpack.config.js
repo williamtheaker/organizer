@@ -85,7 +85,7 @@ const development = merge(common, {
     webpack: [
       'react-hot-loader/patch',
       'webpack-dev-server/client?http://localhost:8080',
-      'webpack/hot/only-dev-server',
+      'webpack/hot/only-dev-server'
     ]
   },
   devServer: {
@@ -104,7 +104,7 @@ const development = merge(common, {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-  ]
+  ],
 });
 
 const TARGET = process.env.NODE_ENV;
