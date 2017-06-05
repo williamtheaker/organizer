@@ -218,6 +218,7 @@ export default class FormEditor extends React.Component {
       const defaults = {
         title: this.state.form.title,
         description: RichTextEditor.createValueFromString(this.state.form.description, 'markdown'),
+        next_state: this.state.form.next_state,
         fields: _.map(this.state.form.fields, (field) => ({
           name: field.name,
           control_type: field.control_type,
