@@ -2,8 +2,8 @@
   "name": "organizer",
   "version": "0.0.1",
   "scripts": {
-    "build": "webpack -p",
-    "server": "webpack-dev-server",
+    "build": "webpack -p --config webpack.prod.js",
+    "server": "webpack-dev-server --config webpack.dev.js",
     "start": "concurrently -p name --names \"WEBPACK,DJANGO\" --kill-others \"npm run server\" \"python manage.py runserver\" "
   },
   "dependencies": {

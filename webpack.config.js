@@ -4,10 +4,9 @@ var webpack = require('webpack')
 var BundleTracker = require('webpack-bundle-tracker')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
-var merge = require('webpack-merge');
 var LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 
-const common = {
+module.exports = {
     //the base directory (absolute path) for resolving the entry option
     context: __dirname,
     //the entry point we created earlier. Note that './' means 
@@ -77,42 +76,4 @@ const common = {
     }
 }
 
-const production = merge(common, {
-});
 
-const development = merge(common, {
-  entry: {
-    webpack: [
-      'react-hot-loader/patch',
-      'webpack-dev-server/client?http://localhost:8080',
-      'webpack/hot/only-dev-server'
-    ]
-  },
-  devServer: {
-    hot: true,
-    contentBase: path.resolve(__dirname, 'assets'),
-    publicPath: '/',
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-      "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
-    }
-  },
-  output: {
-    publicPath: 'http://localhost:8080/'
-  },
-  plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
-  ],
-});
-
-const TARGET = process.env.NODE_ENV;
-
-switch (TARGET) {
-  case 'production':
-    module.exports = production;
-    break;
-  default:
-    module.exports = development;
-}
