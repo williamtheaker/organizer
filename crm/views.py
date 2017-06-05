@@ -245,7 +245,7 @@ def index(request, *args, **kwargs):
 @xframe_options_exempt
 def view_form(request, form_id):
     form = models.Form.objects.get(pk=form_id)
-    serializer = serializers.FormSerializer(form, context={'request': request})
+    serializer = serializers.ViewFormSerializer(form, context={'request': request})
     return render(request, 'form.html', {
         'form_obj': form, 
         'settings': settings,

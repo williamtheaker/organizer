@@ -51,10 +51,22 @@ class ActionSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('campaign', 'name', 'date', 'id', 'signups', 'forms',
                 'fields', 'url')
 
+class TinyActionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = models.Action
+        fields = ('name',)
+
 class WriteFormSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Form
         fields = ('action', 'title', 'description', 'next_state', 'active', 'url')
+
+class ViewFormSerializer(serializers.HyperlinkedModelSerializer):
+    fields = FieldSerializer(many=True)
+    action = TinyActionSerializer()
+    class Meta:
+        model = models.Form
+        fields = ('fields', 'action', 'title', 'description', 'url')
 
 class FormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
