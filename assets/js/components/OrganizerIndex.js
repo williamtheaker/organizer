@@ -1,10 +1,12 @@
 import React from 'react'
-import { APIListDataStore } from './RowDataStore'
+import { ModelDataStore } from './RowDataStore'
 import StoreBinding from './StoreBinding'
 import { titles } from './../TitleManager'
 import { Table } from './DataTable'
 import { Route, Link, Switch } from 'react-router-dom'
 import MenuNavLink from './MenuNavLink'
+
+import { Activist } from '../API'
 
 import ActionReport from './ActionReport'
 import FormEditor from './FormEditor'
@@ -14,7 +16,7 @@ import ActivistIndex from './ActivistIndex'
 class OrganizerDashboard extends React.Component {
   constructor(props) {
     super(props);
-    this.store = new APIListDataStore('/api/activists/recent/')
+    this.store = new ModelDataStore(Activist)
     this.store.reload();
   }
 

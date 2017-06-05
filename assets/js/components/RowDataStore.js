@@ -113,3 +113,19 @@ export class APIListDataStore extends RowDataStore {
     return this.data.results || [];
   }
 }
+
+export class ModelDataStore extends RowDataStore {
+  constructor(modelType) {
+    super();
+    this.model = modelType;
+  }
+
+  reload() {
+    return this.model.getAll()
+      .then(rows => this.setData({rows: rows}));
+  }
+
+  allItems() {
+    return this.data.rows || [];
+  }
+}
