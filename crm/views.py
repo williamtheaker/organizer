@@ -17,11 +17,16 @@ from . import serializers
 from django.contrib.auth.models import User
 import json
 import address
-
+from anymail.signals import tracking
+from django.dispatch import receiver
 import django_rq
 
 def send_email(email_obj):
     email_obj.send()
+
+@receiver(tracking)
+def handle_unsubscribe(sender, event, esp_name, **kwargs):
+    print event, event.recipient
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
