@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'django_rq',
     'mailchimp',
     'crm',
-    'districting'
+    'districting',
+    'emails'
 ]
 
 RQ_QUEUES = {

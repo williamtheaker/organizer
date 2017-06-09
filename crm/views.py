@@ -5,7 +5,6 @@ import logging
 from django.shortcuts import render
 from django.conf import settings
 from django.template import loader, engines
-from django.core.mail import EmailMessage
 from . import models
 from django.db.models import Q
 from rest_framework import viewsets
@@ -17,16 +16,8 @@ from . import serializers
 from django.contrib.auth.models import User
 import json
 import address
-from anymail.signals import tracking
-from django.dispatch import receiver
 import django_rq
-
-def send_email(email_obj):
-    email_obj.send()
-
-@receiver(tracking)
-def handle_unsubscribe(sender, event, esp_name, **kwargs):
-    print event, event.recipient
+from emails.models import TemplatedEmail
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -138,31 +129,17 @@ class ActionViewSet(viewsets.ModelViewSet):
             'signups': request.data.get('signups', None)
         })
         if serializer.is_valid():
-            templated_body = engines['django'].from_string(serializer.validated_data.get('body'))
-            email_template = loader.get_template('email.eml')
+            templated_email = TemplatedEmail.objects.create(
+                subject=serializer.validated_data.get('subject'),
+                body=serializer.validated_data.get('body')
+            )
             signups = models.Signup.objects.filter(
                 action=action_obj,
                 pk__in=serializer.validated_data.get('signups')
             )
-            for s in signups:
-                cxt = {
-                    'action': action_obj,
-                    'signup': s,
-                    'activist': s.activist
-                }
-                generated_email = email_template.render({
-                    'signup': s,
-                    'body': templated_body.render(cxt)
-                })
-                email_obj = EmailMessage(
-                    subject=serializer.validated_data.get('subject'),
-                    body=generated_email,
-                    to=[s.activist.email],
-                    reply_to=[request.user.email],
-                )
-                email_obj.encoding = 'utf-8'
-                django_rq.enqueue(send_email, email_obj)
-            return Response({'body': generated_email})
+            activists = [s.activist for s in signups]
+            templated_email.send_to_activists(activists, request.user.email)
+            return Response({'body': ""})
         else:
             return Response({'errors': serializer.errors}, 400)
 
