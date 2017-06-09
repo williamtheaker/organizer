@@ -167,7 +167,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ANYMAIL = {
     'MAILGUN_API_KEY': os.environ.get('MAILGUN_API_KEY', None),
-    'MAILGUN_SENDER_DOMAIN': os.environ.get('MAILGUN_DOMAIN', None)
+    'MAILGUN_SENDER_DOMAIN': os.environ.get('MAILGUN_DOMAIN', None),
+    'WEBOOK_AUTHORIZATION': os.environ.get('ANYMAIL_WEBHOOK_AUTHORIZATION', None)
 }
 
 EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'

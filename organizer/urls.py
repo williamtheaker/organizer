@@ -22,5 +22,6 @@ urlpatterns = [
     url(r'^api/', include('crm.api_urls')),
     url(r'^crm/', include('crm.urls')),
     url(r'^django-rq/', include('django_rq.urls')),
+    url(r'^anymail/', include('anymail.urls')),
     url(r'^', views.index),
 ]
