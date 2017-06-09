@@ -5,7 +5,7 @@
     "postinstall": "webpack -p --config webpack.prod.js",
     "build": "webpack -p --config webpack.prod.js",
     "server": "webpack-dev-server --config webpack.dev.js",
-    "start": "concurrently -p name --names \"WEBPACK,DJANGO\" --kill-others \"npm run server\" \"python manage.py runserver\" "
+    "start": "concurrently -c \"bgBlue.bold,bgMagenta.bold,bgRed.bold\" -p name --names \"WEBPACK,DJANGO,WORKER\" --kill-others \"npm run server\" \"python manage.py runserver\" \"python manage.py rqworker\""
   },
   "dependencies": {
     "axios": "^0.16.1",

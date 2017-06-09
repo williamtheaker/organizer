@@ -23,3 +23,4 @@ raven
 python-cicero
 djangorestframework
 django-webpack-loader
+django-rq

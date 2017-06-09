@@ -48,10 +48,17 @@ INSTALLED_APPS = [
     'markdownify',
     'webpack_loader',
     'raven.contrib.django.raven_compat',
+    'django_rq',
     'mailchimp',
     'crm',
     'districting'
 ]
+
+RQ_QUEUES = {
+    'default': {
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0')
+    }
+}
 
 MARKDOWNIFY_WHITELIST_TAGS = [
     'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol', 'p',
