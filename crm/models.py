@@ -68,6 +68,9 @@ class Action(models.Model):
     date = models.DateTimeField()
     campaign = models.ForeignKey(Campaign)
 
+    class Meta:
+        ordering = ['-date', 'name']
+
     @property
     def fields(self):
         return FormField.objects.filter(form__action=self)
@@ -84,6 +87,9 @@ class Form(models.Model):
     description = models.TextField()
     active = models.BooleanField(default=True)
     next_state = models.IntegerField(choices=SignupState.choices())
+
+    class Meta:
+        ordering = ['title']
 
     def get_absolute_url(self):
         return '/crm/f/%s/'%(self.id)
