@@ -62,6 +62,7 @@ class MailSubmission(models.Model):
 
 def handler(event_type):
     def wrapper(f):
+        @receiver(tracking)
         @functools.wraps(f)
         def wrapped(sender, event, esp_name, *args, **kwargs):
             submission = MailSubmission.objects.get(message_id=event.message_id)
@@ -86,6 +87,6 @@ def handle_delivery(submission, event):
     submission.save()
 
 @handler("opened")
-def handle_deliverY(submission, event):
+def handle_delivery(submission, event):
     submission.opened = datetime.now()
     submission.save()
