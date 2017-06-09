@@ -40,6 +40,7 @@ class Activist(models.Model):
     phone = models.CharField(blank=True, max_length=200)
     address = AddressField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
+    do_not_email = models.BooleanField(default=False)
 
     def __unicode__(self):
         ret = self.name.strip()
