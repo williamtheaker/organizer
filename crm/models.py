@@ -42,7 +42,10 @@ class Activist(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
-        return self.name
+        ret = self.name.strip()
+        if len(ret) == 0:
+            return self.email
+        return ret
 
 class Campaign(models.Model):
     name = models.CharField(max_length=200)
