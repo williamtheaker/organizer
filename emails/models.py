@@ -52,8 +52,8 @@ class MailSubmission(models.Model):
     to = models.ForeignKey(Activist, related_name='email_recipients')
     email = models.ForeignKey(TemplatedEmail, related_name='recipients')
     created = models.DateTimeField(auto_now_add=True)
-    delivered = models.DateTimeField(default=None, blank=True)
-    opened = models.DateTimeField(default=None, blank=True)
+    delivered = models.DateTimeField(default=None, null=True)
+    opened = models.DateTimeField(default=None, null=True)
     bounced = models.BooleanField(default=False)
     message_id = models.TextField()
 
