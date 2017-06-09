@@ -10,6 +10,9 @@ from datetime import datetime
 from django.template import loader, engines
 from django.core.mail import EmailMessage
 import django_rq
+import logging
+
+logger = logging.getLogger(__name__)
 
 def send_email(email_obj, activist, templated_email):
     status = email_obj.send()
@@ -65,8 +68,9 @@ def handler(event_type):
         @receiver(tracking)
         @functools.wraps(f)
         def wrapped(sender, event, esp_name, *args, **kwargs):
-            submission = MailSubmission.objects.get(message_id=event.message_id)
+            logger.debug("Got email event: %r", event)
             if event.event_type == event_type:
+                submission = MailSubmission.objects.get(message_id=event.message_id)
                 return f(submission, event, *args, **kwargs)
     return wrapper
 
