@@ -18,6 +18,11 @@ from django.contrib.auth.models import User
 import json
 import address
 
+import django_rq
+
+def send_email(email_obj):
+    email_obj.send()
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
@@ -151,7 +156,7 @@ class ActionViewSet(viewsets.ModelViewSet):
                     reply_to=[request.user.email],
                 )
                 email_obj.encoding = 'utf-8'
-                email_obj.send()
+                django_rq.enqueue(send_email, email_obj)
             return Response({'body': generated_email})
         else:
             return Response({'errors': serializer.errors}, 400)
