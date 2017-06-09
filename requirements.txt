@@ -24,3 +24,5 @@ python-cicero
 djangorestframework
 django-webpack-loader
 django-rq
+django-slack-oauth
+django-redis-cache

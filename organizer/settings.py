@@ -49,15 +49,34 @@ INSTALLED_APPS = [
     'webpack_loader',
     'raven.contrib.django.raven_compat',
     'django_rq',
+    'django_slack_oauth',
     'mailchimp',
     'crm',
     'districting',
-    'emails'
+    'emails',
+    'slack'
 ]
+
+SLACK_PIPELINES = [
+    'slack.pipelines.register_user',
+]
+
+SLACK_CLIENT_ID = os.environ.get('SLACK_CLIENT_ID', None)
+SLACK_CLIENT_SECRET = os.environ.get('SLACK_CLIENT_SECRET', None)
+SLACK_SCOPE = 'identity.basic,identity.team,identity.email'
+SLACK_TEAM_ID = os.environ.get('SLACK_TEAM_ID', None)
+SLACK_SUCCESS_REDIRECT_URL = '/organize/'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0')
+    }
+}
 
 RQ_QUEUES = {
     'default': {
-        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0')
+        'USE_REDIS_CACHE': 'default'
     }
 }
 

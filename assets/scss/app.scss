@@ -9,6 +9,15 @@
 @include foundation-table;
 @include foundation-top-bar;
 
+.signin {
+  text-align: center;
+
+  a {
+    margin: 3em;
+    display: block;
+  }
+}
+
 input.inline-editor {
   border-width: 0 0 4px 0;
   border-color: #00f;

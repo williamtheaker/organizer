@@ -10,7 +10,7 @@ from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from django.views.decorators.clickjacking import xframe_options_exempt
 from . import serializers
 from django.contrib.auth.models import User
@@ -18,10 +18,17 @@ import json
 import address
 import django_rq
 from emails.models import TemplatedEmail
+from django.contrib.auth import logout
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @list_route(methods=['get'])
+    def logout(self, request):
+        logout(request)
+        return Response()
 
     def get_object(self):
         pk = self.kwargs.get('pk')
@@ -34,6 +41,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class ActivistViewSet(viewsets.ModelViewSet):
     queryset = models.Activist.objects.all()
     serializer_class = serializers.ActivistSerializer
+    permission_classes = (IsAuthenticated,)
 
     @list_route(methods=['get'])
     def search(self, request):
@@ -64,6 +72,7 @@ class ActivistViewSet(viewsets.ModelViewSet):
 
 class SignupViewSet(viewsets.ModelViewSet):
     queryset = models.Signup.objects.all()
+    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.request.method in ('GET',):
@@ -210,7 +219,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CampaignSerializer
 
 class CityViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
     queryset = address.models.Locality.objects.all()
     serializer_class = serializers.CitySerializer
 
@@ -227,7 +236,12 @@ class CityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 def index(request, *args, **kwargs):
-    return render(request, 'index.html', {'settings':settings})
+    user_serializer = serializers.UserSerializer(request.user,
+            context={'request': request})
+    return render(request, 'index.html', {
+        'settings': settings,
+        'user_data': json.dumps(user_serializer.data)
+    })
 
 @xframe_options_exempt
 def view_form(request, form_id):
