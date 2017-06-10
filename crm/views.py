@@ -236,12 +236,7 @@ class CityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 def index(request, *args, **kwargs):
-    user_serializer = serializers.UserSerializer(request.user,
-            context={'request': request})
-    return render(request, 'index.html', {
-        'settings': settings,
-        'user_data': json.dumps(user_serializer.data)
-    })
+    return render(request, 'index.html')
 
 @xframe_options_exempt
 def view_form(request, form_id):
@@ -249,6 +244,5 @@ def view_form(request, form_id):
     serializer = serializers.ViewFormSerializer(form, context={'request': request})
     return render(request, 'form.html', {
         'form_obj': form, 
-        'settings': settings,
-        'form_data': json.dumps(serializer.data)
+        'form_data': json.dumps(serializer.data),
     })
