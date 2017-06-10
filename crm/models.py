@@ -22,12 +22,6 @@ class SignupState(ChoiceEnum):
     noshow = 3
     cancelled = 4
 
-class CampaignMembershipState(ChoiceEnum):
-    prospective = 0
-    active = 1
-    inactive = 2
-    removed = 3
-
 class FormControlType(ChoiceEnum):
     text = 0
     boolean = 1
@@ -48,26 +42,9 @@ class Activist(models.Model):
             return self.email
         return ret
 
-class Campaign(models.Model):
-    name = models.CharField(max_length=200)
-    created = models.DateTimeField(auto_now_add=True)
-
-    def __unicode__(self):
-        return self.name
-
-class CampaignMember(models.Model):
-    activist = models.ForeignKey(Activist, related_name='campaign_memberships')
-    campaign = models.ForeignKey(Campaign, related_name='campaign_memberships')
-    state = models.IntegerField(choices=CampaignMembershipState.choices())
-
-    def __unicode__(self):
-        return "%s -> %s (%s)"%(self.activist, self.campaign,
-                CampaignMembershipState(self.state).name)
-
 class Action(models.Model):
     name = models.CharField(max_length=200)
     date = models.DateTimeField()
-    campaign = models.ForeignKey(Campaign)
 
     class Meta:
         ordering = ['-date', 'name']

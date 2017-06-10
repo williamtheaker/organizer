@@ -24,9 +24,6 @@ class SignupInline(admin.TabularInline):
 class FormInline(admin.TabularInline):
     model = models.Form
 
-class CampaignMemberInline(admin.TabularInline):
-    model = models.CampaignMember
-
 class ActionFilter(admin.SimpleListFilter):
     title = 'Action'
     parameter_name = 'action'
@@ -40,21 +37,6 @@ class ActionFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() is not None:
             return queryset.filter(signups__action_id=self.value())
-        return queryset
-
-class CampaignFilter(admin.SimpleListFilter):
-    title = 'Campaign'
-    parameter_name = 'campaign'
-
-    def lookups(self, request, model_admin):
-        ret = []
-        for c in models.Campaign.objects.all():
-            ret.append((c.id, c.name))
-        return ret
-
-    def queryset(self, request, queryset):
-        if self.value() is not None:
-            return queryset.filter(campaign_memberships__campaign_id=self.value())
         return queryset
 
 class CityFilter(admin.SimpleListFilter):
@@ -94,7 +76,6 @@ class ActivistAdmin(admin.ModelAdmin):
 
     list_filter = [
         ActionFilter,
-        CampaignFilter,
         CityFilter,
         DistrictFilter
     ]
@@ -114,15 +95,6 @@ class ActivistAdmin(admin.ModelAdmin):
             action_processor.short_description = "Add to action: %s"%(a.name)
             actions['add_action_%s'%a.id] = (action_processor,
                     'add_action_%s'%a.id, action_processor.short_description)
-        for c in models.Campaign.objects.all():
-            def campaign_processor(modeladmin, request, queryset):
-                for f in queryset.all():
-                    models.CampaignMember.objects.get_or_create(activist=f,
-                            campaign=c,
-                            defaults={'state':models.CampaignMembershipState.prospective.value})
-            campaign_processor.short_description = "Add to campaign: %s"%(c.name)
-            actions['add_campaign_%s'%a.id] = (campaign_processor,
-                    'add_campaign_%s'%a.id, campaign_processor.short_description)
         return actions
 
     def action_count(self, obj):
@@ -147,16 +119,9 @@ class FormAdmin(admin.ModelAdmin):
         FieldInline
     ]
 
-class CampaignAdmin(admin.ModelAdmin):
-    inlines = [
-        CampaignMemberInline
-    ]
-
 admin.site.register(models.Action, ActionAdmin)
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormField)
 admin.site.register(models.Signup)
 admin.site.register(models.FormResponse)
 admin.site.register(models.Activist, ActivistAdmin)
-admin.site.register(models.Campaign, CampaignAdmin)
-admin.site.register(models.CampaignMember)

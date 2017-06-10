@@ -205,11 +205,6 @@ class FieldViewSet(viewsets.ModelViewSet):
     queryset = models.FormField.objects.all()
     serializer_class = serializers.FieldSerializer
 
-class CampaignViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = models.Campaign.objects.all()
-    serializer_class = serializers.CampaignSerializer
-
 class CityViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = address.models.Locality.objects.all()
@@ -233,7 +228,6 @@ views = {
     'actions': ActionViewSet,
     'forms': FormViewSet,
     'fields': FieldViewSet,
-    'campaigns': CampaignViewSet,
     'signups': SignupViewSet,
     'activists': ActivistViewSet,
     'cities': CityViewSet
