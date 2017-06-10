@@ -18,6 +18,21 @@
   }
 }
 
+.app-splash {
+  text-align: center;
+  .pop {
+    font-size: 58pt;
+    font-family: 'Rock Salt', cursive;
+  }
+
+  .github-link {
+    font-size: 48pt;
+    a {
+      color: #8d2;
+    }
+  }
+}
+
 input.inline-editor {
   border-width: 0 0 4px 0;
   border-color: #00f;
@@ -111,12 +126,15 @@ nav {
 }
 
 body {
-  background-color: #888;
+  background: #888 url(../img/asphalt.jpg) repeat;
   font-color: #fff;
 }
 
+.logo {
+  text-align: center;
+}
+
 .logo a {
-  margin: 2em 2em 2em 0;
   display: block;
   color: transparent;
   height: 200px;
@@ -124,12 +142,16 @@ body {
   background-size: contain;
 }
 
+.logo-full a {
+  margin: 2em 0 2em 0;
+}
+
 header {
   background: url(../img/bg.png) repeat;
 }
 
 .mastiff {
-  padding: 3em;
+  padding: 3em 0 3em 3em;
   color: #000;
 }
 
@@ -144,4 +166,10 @@ header {
 
 footer {
   font-size: small;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.5);
+
+  a {
+    color: #fff;
+  }
 }
