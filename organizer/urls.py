@@ -15,11 +15,26 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from rest_framework import routers
+from django.conf import settings
+from importlib import import_module
+
 from crm import views
+
+router = routers.DefaultRouter()
+
+for app in settings.INSTALLED_APPS:
+    try:
+        imported = import_module('.'.join((app, 'api_views')))
+    except ImportError:
+        continue
+    if hasattr(imported, 'views'):
+        for slug, viewset in imported.views.iteritems():
+            router.register(slug, viewset)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^api/', include('crm.api_urls')),
+    url(r'^api/', include(router.urls)),
     url(r'^crm/', include('crm.urls')),
     url(r'^django-rq/', include('django_rq.urls')),
     url(r'^anymail/', include('anymail.urls')),
