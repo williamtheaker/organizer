@@ -12,6 +12,10 @@ const LazyOrganizerIndex = asyncComponent({
   resolve: () => import('./OrganizerIndex').then(m => m.default)
 });
 
+const LazyAppIndex = asyncComponent({
+  resolve: () => import('./AppIndex').then(m => m.default)
+});
+
 export default class App extends React.PureComponent {
   constructor(props) {
     super(props);
@@ -34,6 +38,7 @@ export default class App extends React.PureComponent {
               <Canvas>
                 <Route exact path="/crm/f/:id" component={FormView}/>
                 <Route path="/organize" component={LazyOrganizerIndex} />
+                <Route exact path="/" component={LazyAppIndex} />
               </Canvas>
             </div>
           </div>
