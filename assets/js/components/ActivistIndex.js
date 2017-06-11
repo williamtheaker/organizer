@@ -8,9 +8,100 @@ import axios from 'axios'
 import _ from 'lodash'
 import Gravatar from 'react-gravatar'
 import Modal from 'react-modal'
-import { Form, FormInput } from 'react-form'
+import { Text, NestedForm, Form, FormInput } from 'react-form'
 import { csrftoken } from '../Django'
 import { Action, Activist } from '../API'
+
+function makeOption(k, v) {
+  return {value: v, label: k}
+}
+
+class Filter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.loadOptions= this.loadOptions.bind(this);
+  }
+
+  loadOptions(value) {
+    return axios.get('/api/activists/fields/')
+      .then(response => (
+        _.map(response.data.fields, f => (
+          {label: f.label, value: f.key}
+        ))
+      ))
+      .then(options => ({options: options}));
+  }
+
+  render() {
+    const operators = [
+      makeOption('Contains', 'contains'),
+      makeOption('Equals', 'equals')
+    ];
+    return (
+      <div className="row">
+        <div className="small-1 columns">
+          <button className="button" onClick={this.props.removeValue}>-</button>
+        </div>
+        <div className="small-3 columns">
+          <FormInput field="key">
+            {({getValue, setValue}) => (
+              <Select.Async value={getValue()} onChange={setValue} loadOptions={this.loadOptions}/>
+            )}
+          </FormInput>
+        </div>
+        <div className="small-3 columns">
+          <FormInput field="operator">
+            {({getValue, setValue}) => (
+              <Select value={getValue()} onChange={setValue} options={operators}/>
+            )}
+          </FormInput>
+        </div>
+        <div className="small-5 columns">
+          <Text type="text" field="value"/>
+        </div>
+      </div>
+    )
+  }
+}
+
+class ActivistFilterEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+    };
+    this.doOnChange = this.doOnChange.bind(this);
+  }
+
+  doOnChange({values}) {
+    this.props.onChange(values);
+  }
+
+  render() {
+    const defaults = {
+      filters: []
+    };
+    return (
+      <Form defaultValues={defaults} onChange={this.doOnChange}>
+        {({values, addValue, removeValue}) => (
+          <div>
+            {_.map(values.filters, (filter, i) => (
+              <div key={i}>
+                <NestedForm field={['filters', i]}>
+                  <Form>
+                    <Filter
+                      removeValue={() => removeValue('filters', i)}
+                    />
+                  </Form>
+                </NestedForm>
+              </div>
+            ))}
+            <button className="button" onClick={() => addValue('filters', {})}>Add Filter</button>
+          </div>
+        )}
+      </Form>
+    );
+  }
+}
 
 class BulkAddActivists extends React.Component {
   constructor(props) {
@@ -71,61 +162,6 @@ class BulkAddActivists extends React.Component {
   }
 }
 
-class AddressSelect extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {options: []}
-
-    this.getOptions = this.getOptions.bind(this);
-  }
-
-  getOptions(value) {
-    return axios.get('/api/cities/search/', {params: {q: value}})
-      .then(response => {
-        const options = _.map(
-          response.data.results,
-          city => ({value: city.id, label: city.name})
-        )
-        return {options: options};
-      });
-  }
-
-  render() {
-    return <Select.Async loadOptions={this.getOptions} {...this.props} />
-  }
-}
-
-class AddressSearchFilterHeader extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: []
-    };
-  }
-
-  render() {
-    return (
-      <th>
-        City
-        <AddressSelect
-          multi={true}
-          value={this.state.value}
-          onChange={value => {
-            if (value.length == 0) {
-              this.props.onFilterChanged(() => true);
-            } else {
-              const patterns = _.map(value, v => new RegExp(v.label, 'i'));
-              this.props.onFilterChanged(data => _.some(patterns, p => data && data.match(p)));
-            }
-            this.setState({value: value});
-          }}
-          multi={true}
-        />
-      </th>
-    )
-  }
-}
-
 export default class ActivistIndex extends React.Component {
   constructor(props) {
     super(props);
@@ -134,10 +170,28 @@ export default class ActivistIndex extends React.Component {
     };
     this.store = new ModelDataStore(Activist);
     this.store.reload();
+    this.doOnChange = _.throttle(this.doOnChange.bind(this), 500, {trailing: true});
   }
 
   componentDidMount() {
     titles.setSubtitle("Activists");
+  }
+
+  doOnChange(values) {
+    var filters = {};
+    const filterables = _.filter(values.filters, f => f);
+    _.each(filterables, (values) => {
+      const {operator, key} = _.mapValues(values, v => v.value);
+      const value = values.value;
+      if (operator == "contains") {
+        filters[key+"__icontains"] = value;
+      } else if (operator == "equals") {
+        filters[key] = value;
+      } else {
+        console.log("unknown filter operator", operator);
+      }
+    });
+    this.store.setOptions(filters);
   }
 
   render() {
@@ -145,7 +199,7 @@ export default class ActivistIndex extends React.Component {
       {label: 'Name', value: 'name',
         cell: ({row}) => <span><Gravatar size={24} email={row.email} />{row.name}</span>},
       {label: 'Email', value: 'email'},
-      {label: 'Address', value: 'address', header: AddressSearchFilterHeader}
+      {label: 'Address', value: 'address'}
     ];
     return (
       <div>
@@ -159,6 +213,7 @@ export default class ActivistIndex extends React.Component {
         </Modal>
         <div className="row">
           <div className="small-12 columns">
+            <ActivistFilterEditor onChange={this.doOnChange} />
             <div className="top-bar">
               <div className="top-bar-right">
                 <ul className="menu">

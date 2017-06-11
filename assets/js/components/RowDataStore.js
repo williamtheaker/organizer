@@ -115,13 +115,21 @@ export class APIListDataStore extends RowDataStore {
 }
 
 export class ModelDataStore extends RowDataStore {
-  constructor(modelType) {
+  constructor(modelType, options) {
     super();
+    this.options = options || {};
     this.model = modelType;
   }
 
+  setOptions(options) {
+    if (this.options != options) {
+      this.options = options;
+      this.reload();
+    }
+  }
+
   reload() {
-    return this.model.getAll()
+    return this.model.getAll(this.options)
       .then(rows => this.setData({rows: rows}));
   }
 

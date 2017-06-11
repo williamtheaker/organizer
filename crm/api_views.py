@@ -36,11 +36,27 @@ class ActivistViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     @list_route(methods=['get'])
-    def search(self, request):
-        results = models.Activist.objects.filter(
-            Q(name__icontains=request.GET.get('q')) |
-            Q(email__icontains=request.GET.get('q'))
-        ).order_by('name')
+    def fields(self, request):
+        fields = []
+        for fieldName, field in self.get_serializer().fields.iteritems():
+            print repr(field)
+            fields.append({'label': field.label, 'key':
+                field.source.replace('.', '__')})
+        return Response({'fields': fields})
+
+    def list(self, request):
+        filterArg = Q()
+        sortKeys = [request.GET.get('sort', 'name')]
+
+        for param, value in request.GET.iteritems():
+            if param == 'sort':
+                continue
+            filterArg &= Q(**{param: value})
+        results = models.Activist.objects.filter(filterArg).order_by('name')
+
+        for sortKey in sortKeys:
+            results = results.order_by(sortKey)
+
         page = self.paginate_queryset(results)
 
         if page is not None:
@@ -48,18 +64,6 @@ class ActivistViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(results, many=True)
-        return Response(serializer.data)
-
-    @list_route(methods=['get'])
-    def recent(self, request):
-        recent_activists = models.Activist.objects.all().order_by('-created')[0:10]
-        page = self.paginate_queryset(recent_activists)
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(recent_activists, many=True)
         return Response(serializer.data)
 
 class SignupViewSet(viewsets.ModelViewSet):

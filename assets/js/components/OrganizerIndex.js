@@ -18,7 +18,7 @@ import { users, withCurrentUser } from '../UserManager'
 class OrganizerDashboard extends React.Component {
   constructor(props) {
     super(props);
-    this.store = new ModelDataStore(Activist)
+    this.store = new ModelDataStore(Activist, {sort: '-created'})
     this.store.reload();
   }
 
