@@ -12,7 +12,31 @@ from emails.models import TemplatedEmail
 from . import models, serializers
 import address
 
-class UserViewSet(viewsets.ModelViewSet):
+class IntrospectiveViewSet(viewsets.ModelViewSet):
+    @list_route(methods=['get'])
+    def fields(self, request):
+        fields = []
+        for fieldName, field in self.get_serializer().fields.iteritems():
+            fields.append({'label': field.label, 'key': fieldName})
+        return Response({'fields': fields})
+
+    def get_queryset(self):
+        filterArg = Q()
+        sortKeys = [self.request.query_params.get('sort', 'name')]
+        serializer = self.get_serializer()
+
+        for param, value in self.request.query_params.iteritems():
+            if param == "sort":
+                continue
+            filterArg &= Q(**{param: value})
+        results = super(IntrospectiveViewSet, self).get_queryset().filter(filterArg)
+
+        for sortKey in sortKeys:
+            results = results.order_by(sortKey)
+
+        return results
+
+class UserViewSet(IntrospectiveViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
@@ -30,43 +54,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return super(UserViewSet, self).get_object()
 
-class ActivistViewSet(viewsets.ModelViewSet):
+class ActivistViewSet(IntrospectiveViewSet):
     queryset = models.Activist.objects.all()
     serializer_class = serializers.ActivistSerializer
     permission_classes = (IsAuthenticated,)
 
-    @list_route(methods=['get'])
-    def fields(self, request):
-        fields = []
-        for fieldName, field in self.get_serializer().fields.iteritems():
-            print repr(field)
-            fields.append({'label': field.label, 'key':
-                field.source.replace('.', '__')})
-        return Response({'fields': fields})
-
-    def list(self, request):
-        filterArg = Q()
-        sortKeys = [request.GET.get('sort', 'name')]
-
-        for param, value in request.GET.iteritems():
-            if param == 'sort':
-                continue
-            filterArg &= Q(**{param: value})
-        results = models.Activist.objects.filter(filterArg).order_by('name')
-
-        for sortKey in sortKeys:
-            results = results.order_by(sortKey)
-
-        page = self.paginate_queryset(results)
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(results, many=True)
-        return Response(serializer.data)
-
-class SignupViewSet(viewsets.ModelViewSet):
+class SignupViewSet(IntrospectiveViewSet):
     queryset = models.Signup.objects.all()
     permission_classes = (IsAuthenticated,)
 
@@ -75,7 +68,7 @@ class SignupViewSet(viewsets.ModelViewSet):
             return serializers.SignupSerializer
         return serializers.WriteSignupSerializer
 
-class ActionViewSet(viewsets.ModelViewSet):
+class ActionViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Action.objects.all()
     serializer_class = serializers.ActionSerializer
@@ -148,7 +141,7 @@ class ActionViewSet(viewsets.ModelViewSet):
         else:
             return Response({'errors': serializer.errors}, 400)
 
-class FormViewSet(viewsets.ModelViewSet):
+class FormViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Form.objects.all()
 
@@ -204,12 +197,12 @@ class FormViewSet(viewsets.ModelViewSet):
         else:
             return Response({'errors': serializer.errors}, 400)
 
-class FieldViewSet(viewsets.ModelViewSet):
+class FieldViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.FormField.objects.all()
     serializer_class = serializers.FieldSerializer
 
-class CityViewSet(viewsets.ModelViewSet):
+class CityViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = address.models.Locality.objects.all()
     serializer_class = serializers.CitySerializer

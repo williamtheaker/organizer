@@ -12,7 +12,7 @@ class ActivistSerializer(serializers.HyperlinkedModelSerializer):
     address = serializers.CharField(source='address.raw')
     class Meta:
         model = models.Activist
-        fields = ('name',  'email', 'address', 'id', 'created', 'url')
+        fields = ('name',  'email', 'address', 'id', 'created', 'url', 'signups')
 
 class FormResponseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
