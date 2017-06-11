@@ -3,7 +3,7 @@ import RichTextEditor from 'react-rte'
 import axios from 'axios'
 import _ from 'lodash'
 import Select from 'react-select'
-import { Form, Text, NestedForm, FormInput, Checkbox } from 'react-form'
+import { Form, Text, FormInput, Checkbox } from 'react-form'
 import {csrftoken} from '../Django'
 
 function SignupStateSelect(props) {

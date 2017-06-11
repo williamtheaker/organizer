@@ -140,8 +140,9 @@ const createModel = ({name, url, fields, instance_routes}) => {
         .then(response => new ModelInstance(response.data))
     }
 
-    static getAll() {
-      return Client.get(baseUrl)
+    static getAll(options) {
+      const cleanOptions = options || {};
+      return Client.get(baseUrl, {params: cleanOptions})
         .then(response => _.map(response.data.results, (row) => new ModelInstance(row)))
     }
   }
