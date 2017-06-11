@@ -3,16 +3,19 @@ import objectPath from 'object-path'
 import _ from 'lodash'
 
 export class Cell extends React.Component {
-  render() {
+  constructor(props) {
+    super(props);
+    this.state = {value: undefined}
+
     const value = objectPath.get(this.props.row, this.props.column.value);
-    if (typeof value == "object") {
-      return (
-        <span>{JSON.stringify(value)}</span>
-      )
+    Promise.resolve(value).then(v => this.setState({value: v}));
+  }
+
+  render() {
+    if (typeof this.state.value == "object") {
+      return <span>{JSON.stringify(this.state.value)}</span>
     } else {
-      return (
-        <span>{value}</span>
-      )
+      return <span>{this.state.value}</span>
     }
   }
 }

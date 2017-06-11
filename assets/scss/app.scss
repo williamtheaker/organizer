@@ -9,6 +9,12 @@
 @include foundation-table;
 @include foundation-top-bar;
 
+.filters {
+  border:1px solid black;
+  padding: 10px;
+  margin: 5px 0 5px 0;
+}
+
 .signin {
   text-align: center;
 

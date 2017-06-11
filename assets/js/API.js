@@ -3,6 +3,7 @@ import axios from 'axios'
 import _ from 'lodash'
 import moment from 'moment'
 import urljoin from 'url-join'
+import PSemaphore from 'promise-semaphore'
 
 const axiosConfig = {
   xsrfCookieName: 'csrftoken',
@@ -11,19 +12,23 @@ const axiosConfig = {
 
 const Client = axios.create(axiosConfig);
 
+const workPool = new PSemaphore({
+  rooms: 1
+})
+
 export default Client;
 
 const modelProxyHooks = {
-  get: (target, propKey, receiver) => {
+  get(target, propKey, receiver) {
     return target.get(propKey) || target[propKey];
   },
-  set: (target, propKey, value, receiver) => {
+  set(target, propKey, value, receiver) {
     return target.set(propKey, value) || (target[propKey] = value)
   },
-  has: (target, propKey) => {
+  has(target, propKey) {
     return target.has(propKey) || propKey in target[propKey];
   },
-  getOwnPropertyDescriptor: (target, propKey) => {
+  getOwnPropertyDescriptor(target, propKey) {
     if (target.has(propKey)) {
       return {
         enumerable: true,
@@ -36,7 +41,7 @@ const modelProxyHooks = {
       }
     }
   },
-  ownKeys: (target) => {
+  ownKeys(target) {
     return _.keys(target.data);
   }
 }
@@ -45,13 +50,18 @@ class Model {}
 
 const createModel = ({name, url, fields, instance_routes}) => {
   const baseUrl = url || urljoin('/api', name)+'/'
+  fields = fields || []
 
   class ModelInstance extends Model {
     constructor(data) {
       super(data);
       this.loadFromJSON(data);
+      this.encodeField = _.memoize(this.encodeField);
+      this.decodeField = _.memoize(this.decodeField);
       return new Proxy(this, modelProxyHooks);
     }
+
+    static get name() { return name }
 
     getClient() {
       if (this.isNew()) {
@@ -96,7 +106,7 @@ const createModel = ({name, url, fields, instance_routes}) => {
     }
 
     decodeField(name, value) {
-      if (fields[name] && 'decode' in fields[name]) {
+      if (name in fields && 'decode' in fields[name]) {
         return fields[name].decode(value);
       }
       return value;
@@ -126,6 +136,14 @@ const createModel = ({name, url, fields, instance_routes}) => {
       }
     }
 
+    toString() {
+      return this.get('name') || this.get('label')
+    }
+
+    getId() {
+      return this.get('id') || this.get('url')
+    }
+
     static create(data) {
       return new ModelInstance(data);
     }
@@ -136,14 +154,19 @@ const createModel = ({name, url, fields, instance_routes}) => {
     }
 
     static getByUrl(url) {
-      return Client.get(url)
-        .then(response => new ModelInstance(response.data))
+      return workPool.add(() => Client.get(url)
+        .then(response => new ModelInstance(response.data)))
     }
 
     static getAll(options) {
       const cleanOptions = options || {};
       return Client.get(baseUrl, {params: cleanOptions})
         .then(response => _.map(response.data.results, (row) => new ModelInstance(row)))
+    }
+
+    static getFields() {
+      return Client.get(urljoin(baseUrl, '/fields/'))
+        .then(response => response.data.fields);
     }
   }
   // Add instance routes to model type
@@ -169,8 +192,10 @@ export let Action = createModel({
 })
 
 class HyperlinkRelationField {
-  constructor(modelKey) {
-    this.key = modelKey
+  constructor(model) {
+    this.model = model;
+    this.encode = this.encode.bind(this);
+    this.decode = this.decode.bind(this);
   }
 
   encode(value) {
@@ -178,23 +203,48 @@ class HyperlinkRelationField {
   }
 
   decode(value) {
-    return Schema.models[this.modelKey].getByUrl(value)
+    return this.model.getByUrl(value)
   }
 }
 
-export let Activist = createModel({
-  name: 'activists',
-  fields: {
-    'date': {decode: (d) => moment(d).format('dddd, MMMM Do YYYY, h:mm:ss a')}
-  }}
-);
+class ListField {
+  constructor(subtype) {
+    this.subtype = subtype
+    this.encode = this.encode.bind(this);
+    this.decode = this.decode.bind(this);
+  }
+
+  encode(value) {
+    return _.map(value, this.subtype.encode);
+  }
+
+  decode(value) {
+    return Promise.all(_.map(value, v => Promise.resolve(this.subtype.decode(v))));
+  }
+}
 
 export let Signup = createModel({
   name: 'signups',
   fields: {
-    'action': new HyperlinkRelationField('actions'),
-    'activist': new HyperlinkRelationField('activists')
+    //'action': new HyperlinkRelationField('actions'),
+    //'activist': new HyperlinkRelationField('activists')
   }
+})
+
+export let Activist = createModel({
+  name: 'activists',
+  fields: {
+    'date': {decode: (d) => moment(d).format('dddd, MMMM Do YYYY, h:mm:ss a')},
+    'signups': new ListField(new HyperlinkRelationField(Signup))
+  }
+});
+
+export let District = createModel({
+  name: 'districts',
+})
+
+export let City = createModel({
+  name: 'cities',
 })
 
 if (module.hot) {
