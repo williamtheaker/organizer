@@ -265,7 +265,6 @@ export default class ActionReport extends React.PureComponent {
     this.formStore = new ModelDataStore(APIForm, {action_id: this.props.match.params.id});
     this.signupStore = new ModelDataStore(Signup, {action_id: this.props.match.params.id});
     this.signupStore.on('update', () => this.updateColumns());
-    this.reload();
   }
 
   componentDidMount() {

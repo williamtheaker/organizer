@@ -73,11 +73,11 @@ export default class ActivistIndex extends React.Component {
   constructor(props) {
     super(props);
     this.store = new ModelDataStore(Activist);
-    this.store.reload();
   }
 
   componentDidMount() {
     titles.setSubtitle("Activists");
+    this.store.reload();
   }
 
   render() {

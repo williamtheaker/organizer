@@ -99,18 +99,21 @@ export class ModelDataStore extends RowDataStore {
     super();
     this.options = options || {};
     this.model = modelType;
+    this.reload = _.memoize(this.reload);
   }
 
   setOptions(options) {
     if (this.options != options) {
       this.options = options;
+      this.reload.cache.clear();
       this.reload();
     }
   }
 
   reload() {
     return this.model.getAll(this.options)
-      .then(rows => this.setData({rows: rows}));
+      .then(rows => this.setData({rows: rows}))
+      .then(() => this.reload.cache.clear());
   }
 
   allItems() {
