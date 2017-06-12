@@ -1,5 +1,4 @@
 import React from 'react'
-import axios from 'axios'
 import { titles } from '../TitleManager'
 import _ from 'lodash'
 import Modal from 'react-modal'
@@ -18,7 +17,7 @@ import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
 import Switch from 'rc-switch'
 import ModelIndex from './ModelIndex'
-import { FormResponse, Signup, Form as APIForm } from '../API'
+import { Action, FormResponse, Signup, Form as APIForm } from '../API'
 import { ModelDataStore } from './RowDataStore'
 
 function SignupStateSelect(props) {
@@ -49,9 +48,9 @@ class ActivistAutocomplete extends React.PureComponent {
   handleChange(evt) {
     const q = evt.target.value;
     this.setState({value: q});
-    axios.get('/api/activists/', {params: {name__icontains: q}})
-      .then((response) => {
-        this.setState({items: response.data.results});
+    Activist.getAll({name__icontains: q})
+      .then((activists) => {
+        this.setState({items: activists});
       });
   }
 
@@ -142,28 +141,17 @@ class EmailEditor extends React.PureComponent {
   }
 
   updatePreview(contents) {
-    var data = {
-      subject: "Preview",
-      body: contents,
-      signups: _.map(this.props.store_data.selected, ({id}) => id)
-    };
-    axios.post('/api/actions/'+this.props.action_id+'/email_activists_preview/',
-      data, {headers: {'X-CSRFToken': csrftoken}})
+    new Action({id: this.props.action_id})
+      .email_activists_preview("Preview", contents, this.props.store_data.selected)
       .then((r) => {
         this.setState({preview: r.data.body});
       });
   }
 
   handleSubmit(values) {
-    console.log('submit!', values);
-    var data = {
-      subject: values.subject,
-      body: values.body,
-      signups: _.map(this.props.store_data.selected, ({id}) => id)
-    };
     this.setState({sending: true});
-    axios.post('/api/actions/'+this.props.action_id+'/email_activists/',
-      data, {headers: {'X-CSRFToken': csrftoken}})
+    new Action({id: this.props.action_id})
+      .email_activists(values.subject, values.body, this.props.store_data.selected)
       .then((r) => {
         this.setState({sending: false});
         this.props.onFinished();
@@ -218,10 +206,8 @@ class BulkStateEditor extends React.Component {
     var requests = [];
     this.setState({saving: true});
     _.each(this.props.store_data.selected, (row) => {
-      var data = {
-        state: this.state.nextState.value
-      };
-      requests.push(axios.patch('/api/signups/'+row.id+'/', data, {headers: {'X-CSRFToken': csrftoken}}))
+      row.state = this.state.nextState.value;
+      row.sync();
     });
     Promise.all(requests)
       .then(() => {
@@ -319,10 +305,9 @@ export default class ActionReport extends React.PureComponent {
       state: 0,
       action: this.signupStore.data.url
     };
-    axios.post('/api/signups/', data, {headers: {'X-CSRFToken': csrftoken}})
-      .then((response) => {
-        this.reload();
-      });
+    var signup = new Signup(data);
+    signup.sync()
+      .then(this.reload);
   }
 
   render() {

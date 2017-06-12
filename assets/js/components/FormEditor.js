@@ -5,6 +5,7 @@ import _ from 'lodash'
 import Select from 'react-select'
 import { Form, Text, FormInput, Checkbox } from 'react-form'
 import {csrftoken} from '../Django'
+import { Action, Form as APIForm } from '../API'
 
 function SignupStateSelect(props) {
   const options = [
@@ -117,10 +118,7 @@ export default class FormEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      form: {
-        description: '',
-        fields: []
-      },
+      form: new APIForm(),
       loading: true
     }
 
@@ -132,16 +130,14 @@ export default class FormEditor extends React.Component {
   }
 
   reload() {
-    axios.get('/api/actions/'+this.props.match.params.action_id+'/')
-      .then((results) => {
-        this.setState({action: results.data});
-      });
+    Action.getByID(this.props.match.params.action_id)
+      .then(a => this.setState({action: a}));
     if (this.props.match.params.id == "new") {
       this.setState({loading: false});
     } else {
-      axios.get('/api/forms/'+this.props.match.params.id+'/')
-        .then((results) => {
-          this.setState({form: results.data, loading: false});
+      APIForm.getByID(this.props.match.params.id)
+        .then(form => {
+          this.setState({form: form, loading: false});
         });
     }
   }

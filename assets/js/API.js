@@ -203,7 +203,23 @@ export let Action = createModel({
       const data = {
         activists: _.map(activists, a => a.url)
       }
-      return Action.client.post('bulk_add_activists/', data)
+      return this.getClient().post('bulk_add_activists/', data)
+    },
+    email_activists_preview(subject, body, signups) {
+      var data = {
+        subject: subject,
+        body: body,
+        signups: _.map(signups, ({id}) => id)
+      };
+      return this.getClient().post('email_activists_preview/', data)
+    },
+    email_activists(subject, body, signups) {
+      var data = {
+        subject: subject,
+        body: body,
+        signups: _.map(signups, ({id}) => id)
+      };
+      return this.getClient().post('email_activists/', data)
     }
   }
 })
