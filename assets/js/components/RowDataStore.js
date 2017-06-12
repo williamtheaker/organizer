@@ -1,8 +1,6 @@
 import EventEmitter from 'events'
 import _ from 'lodash'
-import memoize from 'memoizee'
 import objectPath from 'object-path'
-import axios from 'axios'
 
 export default class RowDataStore extends EventEmitter {
   constructor() {
@@ -11,9 +9,9 @@ export default class RowDataStore extends EventEmitter {
     this.filters = [];
     this.selected = [];
 
-    this.visibleItems = memoize(this.visibleItems.bind(this));
-    this.selectedItems = memoize(this.selectedItems.bind(this));
-    this.areAllSelected = memoize(this.areAllSelected.bind(this));
+    this.visibleItems = _.memoize(this.visibleItems.bind(this));
+    this.selectedItems = _.memoize(this.selectedItems.bind(this));
+    this.areAllSelected = _.memoize(this.areAllSelected.bind(this));
   }
 
   notify() {
@@ -28,9 +26,9 @@ export default class RowDataStore extends EventEmitter {
 
   setData(data) {
     this.data = data;
-    this.visibleItems.clear();
-    this.selectedItems.clear();
-    this.areAllSelected.clear();
+    this.visibleItems.cache.clear();
+    this.selectedItems.cache.clear();
+    this.areAllSelected.cache.clear();
     this.notify();
   }
 
@@ -54,9 +52,9 @@ export default class RowDataStore extends EventEmitter {
 
   setFilter(property, value) {
     this.filters[property] = value;
-    this.visibleItems.clear();
-    this.selectedItems.clear();
-    this.areAllSelected.clear();
+    this.visibleItems.cache.clear();
+    this.selectedItems.cache.clear();
+    this.areAllSelected.cache.clear();
     this.notify();
   }
 
@@ -64,15 +62,15 @@ export default class RowDataStore extends EventEmitter {
     _.each(this.allItems(), (s) => {
       this.selected[s.id] = state;
     });
-    this.selectedItems.clear();
-    this.areAllSelected.clear();
+    this.selectedItems.cache.clear();
+    this.areAllSelected.cache.clear();
     this.notify();
   }
 
   setSelected(rowID, state) {
     this.selected[rowID] = state;
-    this.selectedItems.clear();
-    this.areAllSelected.clear();
+    this.selectedItems.cache.clear();
+    this.areAllSelected.cache.clear();
     this.notify();
   }
 
