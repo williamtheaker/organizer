@@ -78,14 +78,14 @@ const createModel = ({name, url, fields, instance_routes, routes, related_filter
           this.encodeField(name, v)
         ));
         console.log("Creating new", newData);
-        return ModelInstance.client.post('', newData)
+        return ModelInstance.client.post('/', newData)
           .then(({data}) => {
             this.loadFromJSON(data);
             return this
           })
       } else {
         console.log("Updating", data);
-        return this.getClient().patch(this.id+'/', data)
+        return this.getClient().patch('/', data)
           .then(({data}) => {
             this.updateFromJSON(data);
             return this
