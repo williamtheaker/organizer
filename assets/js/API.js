@@ -23,7 +23,8 @@ const modelProxyHooks = {
     return target.get(propKey) || target[propKey];
   },
   set(target, propKey, value, receiver) {
-    return target.set(propKey, value) || (target[propKey] = value)
+    target.set(propKey, value) || (target[propKey] = value)
+    return true;
   },
   has(target, propKey) {
     return target.has(propKey) || propKey in target[propKey];
@@ -48,10 +49,12 @@ const modelProxyHooks = {
 
 class Model {}
 
-const createModel = ({name, url, fields, instance_routes, related_filters}) => {
+const createModel = ({name, url, fields, instance_routes, routes, related_filters}) => {
   const baseUrl = url || urljoin('/api', name)+'/'
   fields = fields || []
   related_filters = related_filters || {};
+
+  const modelClient = axios.create({...axiosConfig, baseURL: baseUrl});
 
   class ModelInstance extends Model {
     constructor(data) {
@@ -65,11 +68,7 @@ const createModel = ({name, url, fields, instance_routes, related_filters}) => {
     static get name() { return name }
 
     getClient() {
-      if (this.isNew()) {
-        return axios.create({...axiosConfig, baseURL: baseUrl});
-      } else {
-        return axios.create({...axiosConfig, baseURL: urljoin(baseUrl, this.data.id)});
-      }
+      return axios.create({...axiosConfig, baseURL: urljoin(baseUrl, this.data.id)});
     }
 
     sync() {
@@ -79,23 +78,33 @@ const createModel = ({name, url, fields, instance_routes, related_filters}) => {
           this.encodeField(name, v)
         ));
         console.log("Creating new", newData);
-        return this.getClient().post('', newData)
+        return ModelInstance.client.post('', newData)
           .then(({data}) => {
             this.loadFromJSON(data);
             return this
           })
       } else {
         console.log("Updating", data);
-        return this.getClient().patch(id, data);
+        return this.getClient().patch(this.id+'/', data)
+          .then(({data}) => {
+            this.updateFromJSON(data);
+            return this
+          });
       }
     }
 
     loadFromJSON(data) {
       if (data) {
         this.data = data
-        this.changed = {}
       }
       this.changed = {}
+    }
+
+    updateFromJSON(data) {
+      if (data) {
+        this.data = {...this.data, ...data}
+        this.changed = _.filter(this.changed, (_, key) => key in data)
+      }
     }
 
 
@@ -150,31 +159,36 @@ const createModel = ({name, url, fields, instance_routes, related_filters}) => {
     }
 
     static getByID(id) {
-      return Client.get(urljoin(baseUrl, id))
+      return ModelInstance.client.get(id + '/')
         .then(response => new ModelInstance(response.data))
     }
 
     static getByUrl(url) {
-      return workPool.add(() => Client.get(url)
+      return workPool.add(() => ModelInstance.client.get(url)
         .then(response => new ModelInstance(response.data)))
     }
 
     static getAll(options) {
       const cleanOptions = options || {};
-      return Client.get(baseUrl, {params: cleanOptions})
+      return ModelInstance.client.get('', {params: cleanOptions})
         .then(response => _.map(response.data.results, (row) => new ModelInstance(row)))
     }
 
     static getFields() {
-      return Client.get(urljoin(baseUrl, '/fields/'))
+      return ModelInstance.client.get('fields/')
         .then(response => response.data.fields);
     }
   }
+  ModelInstance.client = modelClient;
   ModelInstance.related_filters = related_filters;
   ModelInstance.fields = fields;
   // Add instance routes to model type
   _.forIn(instance_routes, (route, name) => {
     ModelInstance.prototype[name] = route;
+  });
+  // Add class routes to model type
+  _.forIn(routes, (route, name) => {
+    ModelInstance[name] = route;
   });
   return ModelInstance
 }
@@ -189,7 +203,16 @@ export let Action = createModel({
       const data = {
         activists: _.map(activists, a => a.url)
       }
-      return this.getClient().post('bulk_add_activists/', data)
+      return Action.client.post('bulk_add_activists/', data)
+    }
+  }
+})
+
+export let User = createModel({
+  name: 'users',
+  routes: {
+    logout() {
+      return Client.get('/api/users/logout/')
     }
   }
 })
@@ -265,6 +288,10 @@ export let Form = createModel({
   related_filters: {
     'action': Action
   }
+});
+
+export let FormResponse = createModel({
+  name: 'formresponses'
 });
 
 if (module.hot) {
