@@ -1,6 +1,6 @@
 import EventEmitter from 'events'
-import axios from 'axios'
 import React from 'react'
+import { User } from './API'
 
 export default class UserManager extends EventEmitter {
   constructor() {
@@ -10,8 +10,8 @@ export default class UserManager extends EventEmitter {
   }
 
   logout() {
-    return axios.get('/api/users/logout/')
-      .then((response) => {
+    return User.logout()
+      .then(() => {
         this.user = {};
         this.emit('update', this.user);
       });
@@ -23,7 +23,7 @@ export default class UserManager extends EventEmitter {
       this.user._valid = true;
       this.emit('update', this.user);
     } else {
-      return axios.get('/api/users/me/')
+      return User.getByID('me')
         .then((response) => {
           this.user = response.data;
           this.user._valid = true;
@@ -33,7 +33,6 @@ export default class UserManager extends EventEmitter {
   }
 
   loggedIn() {
-    console.log("login check", this.user, this.user._valid === true);
     return this.user._valid === true;
   }
 }

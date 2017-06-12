@@ -18,7 +18,7 @@ import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
 import Switch from 'rc-switch'
 import ModelIndex from './ModelIndex'
-import { Signup, Form as APIForm } from '../API'
+import { FormResponse, Signup, Form as APIForm } from '../API'
 import { ModelDataStore } from './RowDataStore'
 
 function SignupStateSelect(props) {
@@ -49,7 +49,7 @@ class ActivistAutocomplete extends React.PureComponent {
   handleChange(evt) {
     const q = evt.target.value;
     this.setState({value: q});
-    axios.get('/api/activists/search/', {params: {q: q}})
+    axios.get('/api/activists/', {params: {name__icontains: q}})
       .then((response) => {
         this.setState({items: response.data.results});
       });
@@ -104,15 +104,13 @@ class FormCard extends React.PureComponent {
   }
 
   doChange(checked) {
-    const config = {
-      headers: {'X-CSRFToken': csrftoken}
-    };
-    const data = {
-      active: checked
-    };
-    axios.patch(`/api/forms/${this.props.form.id}/`, data, config)
-      .then((response) => {
-        this.setState({checked: response.data.active});
+    return APIForm.getByID(this.props.form.id)
+      .then(form => {
+        form.checked = checked;
+        return form.sync()
+      })
+      .then(form => {
+        this.setState({checked: form.checked});
       });
   }
 
