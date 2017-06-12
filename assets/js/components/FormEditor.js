@@ -154,7 +154,6 @@ export default class FormEditor extends React.Component {
       }
       axios.post('/api/forms/', data, config)
         .then((response) => {
-          console.log('New form:', response);
           return response.data;
         })
         .then((form) => {

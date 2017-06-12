@@ -17,7 +17,7 @@ import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
 import Switch from 'rc-switch'
 import ModelIndex from './ModelIndex'
-import { Action, FormResponse, Signup, Form as APIForm } from '../API'
+import { Activist, Action, FormResponse, Signup, Form as APIForm } from '../API'
 import { ModelDataStore } from './RowDataStore'
 
 function SignupStateSelect(props) {
@@ -236,12 +236,10 @@ class SignupStateFilterHeader extends React.PureComponent {
   }
 
   handleChanged(selectValue) {
-    console.log('selection', selectValue);
     if (selectValue.length == 0) {
       this.props.onFilterChanged(() => true);
     } else {
       var values = _.map(selectValue, ({value}) => value);
-      console.log(values);
       this.props.onFilterChanged(
         (d) => _.find(values, (v) => v == d));
     }
@@ -284,7 +282,7 @@ export default class ActionReport extends React.PureComponent {
       {label: "E-mail",
        value: 'activist.email'},
       {label: "Status",
-       value: 'state',
+       value: 'data.state',
        cell: ({row}) => <span>{row.state_name}</span>,
        header: SignupStateFilterHeader}
     ];
