@@ -1,4 +1,5 @@
 import React from 'react'
+import RowDataStore from './RowDataStore'
 
 export default class StoreBinding extends React.Component {
   constructor(props) {
@@ -35,3 +36,11 @@ export default class StoreBinding extends React.Component {
     )
   }
 }
+
+export const withStore = (SubComponent) => (
+  (props) => (
+    <StoreBinding store={props.store}>
+      <SubComponent {...props} />
+    </StoreBinding>
+  )
+)

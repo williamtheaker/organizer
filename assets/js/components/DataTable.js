@@ -1,6 +1,7 @@
 import React from 'react'
 import objectPath from 'object-path'
 import _ from 'lodash'
+import { withStore } from './StoreBinding'
 
 export class Cell extends React.Component {
   constructor(props) {
@@ -49,7 +50,7 @@ export class Header extends React.Component {
   }
 }
 
-export class Table extends React.Component {
+class TableBase extends React.Component {
   defaultColumns() {
     const firstItem = this.props.store_data.visible[0];
     return _.map(_.keys(firstItem), (key) => {
@@ -101,3 +102,5 @@ export class Table extends React.Component {
     )
   }
 }
+
+export const Table = withStore(TableBase);

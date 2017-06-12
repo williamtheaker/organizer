@@ -1,6 +1,5 @@
 import React from 'react'
 import { ModelDataStore } from './RowDataStore'
-import StoreBinding from './StoreBinding'
 import { titles } from './../TitleManager'
 import { Table } from './DataTable'
 import { Route, Link, Switch } from 'react-router-dom'
@@ -38,9 +37,7 @@ class OrganizerDashboard extends React.Component {
           <div className="row">
             <div className="small-6 columns">
               <h2>New Activists</h2>
-              <StoreBinding store={this.store}>
-                <Table />
-              </StoreBinding>
+              <Table store={this.store} />
             </div>
           </div>
         </div>
