@@ -1,10 +1,11 @@
 import React from 'react'
 import { ModelDataStore } from './RowDataStore'
-import StoreBinding from './StoreBinding'
 import { Table } from './DataTable'
 import { Link } from 'react-router-dom'
 import { titles } from '../TitleManager'
 import { Action } from '../API'
+
+import ModelIndex from './ModelIndex'
 
 export default class ActionIndex extends React.Component {
   constructor(props) {
@@ -28,9 +29,7 @@ export default class ActionIndex extends React.Component {
        value: "signups.length"}
     ];
     return (
-      <StoreBinding store={this.store}>
-        <Table columns={columns} />
-      </StoreBinding>
+      <ModelIndex columns={columns} store={this.store} />
     )
   }
 }

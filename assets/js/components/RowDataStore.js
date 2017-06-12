@@ -96,24 +96,6 @@ export default class RowDataStore extends EventEmitter {
   }
 }
 
-export class APIListDataStore extends RowDataStore {
-  constructor(endpoint) {
-    super();
-    this.endpoint = endpoint;
-  }
-
-  reload() {
-    return axios.get(this.endpoint)
-      .then((response) => {
-        this.setData(response.data);
-      });
-  }
-
-  allItems() {
-    return this.data.results || [];
-  }
-}
-
 export class ModelDataStore extends RowDataStore {
   constructor(modelType, options) {
     super();

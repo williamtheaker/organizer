@@ -48,9 +48,10 @@ const modelProxyHooks = {
 
 class Model {}
 
-const createModel = ({name, url, fields, instance_routes}) => {
+const createModel = ({name, url, fields, instance_routes, related_filters}) => {
   const baseUrl = url || urljoin('/api', name)+'/'
   fields = fields || []
+  related_filters = related_filters || {};
 
   class ModelInstance extends Model {
     constructor(data) {
@@ -169,6 +170,8 @@ const createModel = ({name, url, fields, instance_routes}) => {
         .then(response => response.data.fields);
     }
   }
+  ModelInstance.related_filters = related_filters;
+  ModelInstance.fields = fields;
   // Add instance routes to model type
   _.forIn(instance_routes, (route, name) => {
     ModelInstance.prototype[name] = route;
@@ -194,8 +197,8 @@ export let Action = createModel({
 class HyperlinkRelationField {
   constructor(model) {
     this.model = model;
-    this.encode = this.encode.bind(this);
-    this.decode = this.decode.bind(this);
+    this.encode = _.memoize(this.encode.bind(this));
+    this.decode = _.memoize(this.decode.bind(this));
   }
 
   encode(value) {
@@ -223,11 +226,24 @@ class ListField {
   }
 }
 
+export let District = createModel({
+  name: 'districts',
+})
+
+export let City = createModel({
+  name: 'cities',
+})
+
 export let Signup = createModel({
   name: 'signups',
   fields: {
-    //'action': new HyperlinkRelationField('actions'),
+    'action': new HyperlinkRelationField(Action),
     //'activist': new HyperlinkRelationField('activists')
+  },
+  related_filters: {
+    'activist__address__locality': City,
+    'activist__district_memberships__district': District,
+    'action': Action
   }
 })
 
@@ -236,16 +252,20 @@ export let Activist = createModel({
   fields: {
     'date': {decode: (d) => moment(d).format('dddd, MMMM Do YYYY, h:mm:ss a')},
     'signups': new ListField(new HyperlinkRelationField(Signup))
+  },
+  related_filters: {
+    'signups__action': Action,
+    'district_memberships__district': District,
+    'address__locality': City
   }
 });
 
-export let District = createModel({
-  name: 'districts',
-})
-
-export let City = createModel({
-  name: 'cities',
-})
+export let Form = createModel({
+  name: 'forms',
+  related_filters: {
+    'action': Action
+  }
+});
 
 if (module.hot) {
   module.hot.decline();

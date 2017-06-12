@@ -6,7 +6,7 @@ import Modal from 'react-modal'
 import { csrftoken } from '../Django'
 import EventEmitter from 'events'
 import RowDataStore from './RowDataStore'
-import StoreBinding from './StoreBinding'
+import { withStore } from './StoreBinding'
 import { Table } from './DataTable'
 import { Form, Text, FormInput } from 'react-form'
 import { MarkdownEditor } from 'react-markdown-editor'
@@ -17,6 +17,9 @@ import { Link } from 'react-router-dom'
 import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
 import Switch from 'rc-switch'
+import ModelIndex from './ModelIndex'
+import { Signup, Form as APIForm } from '../API'
+import { ModelDataStore } from './RowDataStore'
 
 function SignupStateSelect(props) {
   const options = [
@@ -71,27 +74,25 @@ class ActivistAutocomplete extends React.PureComponent {
   }
 }
 
-class FormCards extends React.PureComponent {
-  render() {
-    const cards = _.map(this.props.store_data.visible, (row) => (
-      <FormCard key={row.id} form={row} action_id={this.props.action_id} />
-    ));
-    return (
-      <div>
-        {cards}
-        <div className="card form-card">
-          <div className="card-divider">
-            <h3><Link to={`/organize/action/${this.props.action_id}/form/new`}>Create a new form</Link></h3>
-          </div>
-          <div className="card-section">
-            Create a new form to process signups and data for an action
-          </div>
+const FormCards = withStore((props) => {
+  const cards = _.map(props.store_data.visible, (row) => (
+    <FormCard key={row.id} form={row} action_id={props.action_id} />
+  ));
+  return (
+    <div>
+      {cards}
+      <div className="card form-card">
+        <div className="card-divider">
+          <h3><Link to={`/organize/action/${props.action_id}/form/new`}>Create a new form</Link></h3>
         </div>
-        <br style={{clear:'both'}} />
+        <div className="card-section">
+          Create a new form to process signups and data for an action
+        </div>
       </div>
-    )
-  }
-}
+      <br style={{clear:'both'}} />
+    </div>
+  )
+});
 
 class FormCard extends React.PureComponent {
   constructor(props) {
@@ -167,7 +168,7 @@ class EmailEditor extends React.PureComponent {
       data, {headers: {'X-CSRFToken': csrftoken}})
       .then((r) => {
         this.setState({sending: false});
-        this.props.onSent();
+        this.props.onFinished();
       })
       .catch(() => {
         this.setState({sending: false});
@@ -206,7 +207,7 @@ class EmailEditor extends React.PureComponent {
   }
 }
 
-class BulkStateEditor extends React.PureComponent {
+class BulkStateEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -227,7 +228,7 @@ class BulkStateEditor extends React.PureComponent {
     Promise.all(requests)
       .then(() => {
         this.setState({saving: false});
-        this.props.onSaved();
+        this.props.onFinished();
     });
   }
 
@@ -273,51 +274,14 @@ class SignupStateFilterHeader extends React.PureComponent {
   }
 }
 
-class FormStore extends RowDataStore {
-  constructor(actionStore) {
-    super();
-    this._actionStore = actionStore;
-    this._actionStore.on('update', (bundle) => {
-      this.setData(bundle.data);
-    });
-  }
-
-  allItems() {
-    return this.data.forms || [];
-  }
-}
-
-class ActionStore extends RowDataStore {
-  constructor() {
-    super();
-    this.formStore = new FormStore(this);
-  }
-
-  reload(id) {
-    return axios.get('/api/actions/'+id+'/')
-      .then((results) => {
-        titles.setSubtitle(results.data.name);
-        this.setData(results.data);
-        return results;
-      });
-  }
-
-  allItems() {
-    if (this.data.signups) {
-      return this.data.signups;
-    } else {
-      return [];
-    }
-  }
-}
-
 export default class ActionReport extends React.PureComponent {
   constructor(props) {
     super(props);
-    this.state = {showBulkStateEdit: false, columns: [], showEmailModal: false, showAddActivists: false};
-    this.handleFiltersChanged = this.handleFiltersChanged.bind(this);
-    this.store = new ActionStore();
-    this.store.on('update', () => this.updateColumns());
+    this.state = {columns: []};
+    this.formStore = new ModelDataStore(APIForm, {action_id: this.props.match.params.id});
+    this.signupStore = new ModelDataStore(Signup, {action_id: this.props.match.params.id});
+    this.signupStore.on('update', () => this.updateColumns());
+    this.reload();
   }
 
   componentDidMount() {
@@ -325,11 +289,8 @@ export default class ActionReport extends React.PureComponent {
   }
 
   reload() {
-    this.store.reload(this.props.match.params.id);
-  }
-
-  handleFiltersChanged(filters) {
-    this.setState({filters: filters});
+    this.signupStore.reload();
+    this.formStore.reload();
   }
 
   updateColumns() {
@@ -344,7 +305,7 @@ export default class ActionReport extends React.PureComponent {
        cell: ({row}) => <span>{row.state_name}</span>,
        header: SignupStateFilterHeader}
     ];
-    _.each(this.store.data.fields, (f) => {
+    _.each(this.signupStore.data.fields, (f) => {
       columns.push({
         label: f.name,
         value: 'responses.'+f.id+'.value'
@@ -358,7 +319,7 @@ export default class ActionReport extends React.PureComponent {
       activist: item.url,
       responses: {},
       state: 0,
-      action: this.store.data.url
+      action: this.signupStore.data.url
     };
     axios.post('/api/signups/', data, {headers: {'X-CSRFToken': csrftoken}})
       .then((response) => {
@@ -368,56 +329,29 @@ export default class ActionReport extends React.PureComponent {
 
   render() {
     // TODO: Add remove from action, send email buttons
+    const actions = {
+      bulkEditStates: {label: "Bulk edit states", component: BulkStateEditor},
+      emailActivists: {label: "Email activists", component: (props) => <EmailEditor action_id={this.props.match.params.id} {...props} />},
+    };
     return (
       <div>
-        <Modal
-          isOpen={this.state.showBulkStateEdit}
-          contentLabel="Bulk edit states"
-          onRequestClose={() => {this.setState({showBulkStateEdit: false});}}>
-          <StoreBinding store={this.store}>
-            <BulkStateEditor onSaved={() => {this.setState({showBulkStateEdit: false});this.reload();}} />
-          </StoreBinding>
-        </Modal>
-        <Modal
-          isOpen={this.state.showEmailModal}
-          contentLabel="Email activists"
-          onRequestClose={() => {this.setState({showEmailModal: false})}} >
-          <StoreBinding store={this.store}>
-            <EmailEditor action_id={this.props.match.params.id} onSent={() => {this.setState({showEmailModal: false});}}/>
-          </StoreBinding>
-        </Modal>
         <div className="row">
           <div className="small-12 columns">
             <h3>Forms</h3>
-            <StoreBinding store={this.store.formStore}>
-              <FormCards action_id={this.props.match.params.id} />
-            </StoreBinding>
+            <FormCards store={this.formStore} action_id={this.props.match.params.id} />
             <h3>Activists</h3>
             <div className="top-bar">
               <div className="top-bar-left">
                 <ul className="menu">
                   <li>
-                    <ActivistAutocomplete inputProps={{placeholder:"Add activist", type:"text"}} onSelected={(a) => this.onAddActivistSelected(a)}/>
+                    Add activist: <ActivistAutocomplete inputProps={{placeholder:"Add activist", type:"text"}} onSelected={(a) => this.onAddActivistSelected(a)}/>
                   </li>
-                </ul>
-              </div>
-              <div className="top-bar-right">
-                <ul className="menu">
-                  <li><input type="button" className="button" value="Edit state" onClick={() => {this.setState({showBulkStateEdit: true});}} /></li>
-                  <li><input type="button" className="button" value="Email" onClick={() => {this.setState({showEmailModal: true});}} /></li>
-                  <li><input type="button" className="button" value="Refresh" onClick={() => this.reload()} /></li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
-        <div className="row">
-          <div className="small-12 columns">
-            <StoreBinding store={this.store}>
-              <Table columns={this.state.columns} />
-            </StoreBinding>
-          </div>
-        </div>
+        <ModelIndex actions={actions} store={this.signupStore} columns={this.state.columns} />
       </div>
     )
   }
