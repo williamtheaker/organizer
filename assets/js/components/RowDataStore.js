@@ -97,7 +97,8 @@ export default class RowDataStore extends EventEmitter {
 export class ModelDataStore extends RowDataStore {
   constructor(modelType, options) {
     super();
-    this.options = options || {};
+    this.baseOptions = options || {};
+    this.options = {};
     this.model = modelType;
     this.reload = _.memoize(this.reload);
   }
@@ -111,9 +112,9 @@ export class ModelDataStore extends RowDataStore {
   }
 
   reload() {
-    return this.model.getAll(this.options)
+    return this.model.getAll({...this.baseOptions, ...this.options})
       .then(rows => this.setData({rows: rows}))
-      .then(() => this.reload.cache.clear());
+      .then(() => this.reload.cache.clear())
   }
 
   allItems() {

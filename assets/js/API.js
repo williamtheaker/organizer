@@ -38,7 +38,7 @@ const modelProxyHooks = {
     } else {
       return {
         enumerable: false,
-        configurable: false
+        configurable: true
       }
     }
   },
