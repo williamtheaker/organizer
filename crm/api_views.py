@@ -22,7 +22,9 @@ class IntrospectiveViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         filterArg = Q()
-        sortKeys = [self.request.query_params.get('sort', 'name')]
+        sortKeys = []
+        if 'sort' in self.request.query_params:
+            sortKeys = [self.request.query_params.get('sort')]
         serializer = self.get_serializer()
 
         for param, value in self.request.query_params.iteritems():
