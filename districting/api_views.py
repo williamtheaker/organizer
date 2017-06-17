@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from . import models, serializers
+from drf_enum_field.serializers import EnumFieldSerializerMixin
 
 class IntrospectiveViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
@@ -12,7 +13,7 @@ class IntrospectiveViewSet(viewsets.ModelViewSet):
                 field.source.replace('.', '__')})
         return Response({'fields': fields})
 
-class DistrictViewSet(IntrospectiveViewSet):
+class DistrictViewSet(EnumFieldSerializerMixin, IntrospectiveViewSet):
     queryset = models.District.objects.all()
     serializer_class = serializers.DistrictSerializer
 

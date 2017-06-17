@@ -4,25 +4,24 @@ from __future__ import unicode_literals
 from django.db import models
 from django.urls import reverse
 from address.models import AddressField
+from enumfields import EnumIntegerField, Enum
 import inspect
-from enum import Enum
 
-class ChoiceEnum(Enum):
-    @classmethod
-    def choices(cls):
-        members = inspect.getmembers(cls, lambda m: not(inspect.isroutine(m)))
-        props = [m for m in members if not(m[0][:2] == '__')]
-        choices = tuple([(int(p[1].value), p[0]) for p in props])
-        return choices
-
-class SignupState(ChoiceEnum):
+class SignupState(Enum):
     prospective = 0
     confirmed = 1
     attended = 2
     noshow = 3
     cancelled = 4
 
-class FormControlType(ChoiceEnum):
+    class Labels:
+        prospective = 'Prospective'
+        confirmed = 'Confirmed'
+        attended = 'Attended'
+        noshow = 'No-Show'
+        cancelled = 'Cancelled'
+
+class FormControlType(Enum):
     text = 0
     boolean = 1
     multiple_choice = 2
@@ -64,7 +63,7 @@ class Form(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     active = models.BooleanField(default=True)
-    next_state = models.IntegerField(choices=SignupState.choices())
+    next_state = EnumIntegerField(SignupState)
 
     class Meta:
         ordering = ['title']
@@ -78,7 +77,7 @@ class Form(models.Model):
 class FormField(models.Model):
     form = models.ForeignKey(Form, related_name='fields')
     name = models.CharField(max_length=200)
-    control_type = models.IntegerField(choices=FormControlType.choices())
+    control_type = EnumIntegerField(FormControlType)
     control_data = models.TextField(blank=True)
 
     @property
@@ -111,18 +110,9 @@ class SignupManager(models.Manager):
 class Signup(models.Model):
     activist = models.ForeignKey(Activist, related_name='signups')
     action = models.ForeignKey(Action, related_name='signups')
-    state = models.IntegerField(choices=SignupState.choices())
+    state = EnumIntegerField(SignupState)
 
     objects = SignupManager()
-
-    @property
-    def state_name(self):
-        return SignupState(self.state).name
-
-    @property
-    def responses(self):
-        return FormResponse.objects.filter(field__form__action=self.action.id,
-                activist=self.activist)
 
     def __unicode__(self):
         return "%s: %s (%s)"%(unicode(self.activist), unicode(self.action),

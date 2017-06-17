@@ -22,11 +22,11 @@ import { ModelDataStore } from './RowDataStore'
 
 function SignupStateSelect(props) {
   const options = [
-    {value: '0', label: 'Prospective'},
-    {value: '1', label: 'Confirmed'},
-    {value: '2', label: 'Attended'},
-    {value: '3', label: 'No-Show'},
-    {value: '4', label: 'Cancelled'}
+    {value: 'prospective', label: 'Prospective'},
+    {value: 'confirmed', label: 'Confirmed'},
+    {value: 'attended', label: 'Attended'},
+    {value: 'noshow', label: 'No-Show'},
+    {value: 'cancelled', label: 'Cancelled'}
   ];
   return (
     <Select options={options} {...props} />
@@ -283,7 +283,6 @@ export default class ActionReport extends React.PureComponent {
        value: 'activist.email'},
       {label: "Status",
        value: 'data.state',
-       cell: ({row}) => <span>{row.state_name}</span>,
        header: SignupStateFilterHeader}
     ];
     _.each(this.signupStore.data.fields, (f) => {

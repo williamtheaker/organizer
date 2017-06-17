@@ -26,3 +26,4 @@ django-webpack-loader
 django-rq
 django-slack-oauth
 django-redis-cache
+drf-enum-field

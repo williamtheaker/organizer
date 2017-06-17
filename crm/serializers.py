@@ -2,6 +2,7 @@ from rest_framework import serializers
 from . import models
 from django.contrib.auth.models import User
 import address
+from drf_enum_field.serializers import EnumFieldSerializerMixin
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -9,29 +10,29 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('email', 'id')
 
 class ActivistSerializer(serializers.HyperlinkedModelSerializer):
-    address = serializers.CharField(source='address.raw')
+    address = serializers.SerializerMethodField()
+
+    def get_address(self, obj):
+        return unicode(obj.address)
+
     class Meta:
         model = models.Activist
-        fields = ('name',  'email', 'address', 'id', 'created', 'url', 'signups')
+        fields = ('name',  'email', 'address', 'id', 'created', 'url')
 
 class FormResponseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.FormResponse
         fields = ('value', 'id')
 
-class SignupSerializer(serializers.HyperlinkedModelSerializer):
+class SignupSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
     activist = ActivistSerializer()
     responses = FormResponseSerializer(read_only=True)
+
     class Meta:
         model = models.Signup
-        fields = ('action', 'activist', 'state', 'state_name', 'responses', 'id')
+        fields = ('action', 'activist', 'state', 'responses', 'id', 'url')
 
-class WriteSignupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.Signup
-        fields = ('action', 'activist', 'state', 'id')
-
-class FieldSerializer(serializers.HyperlinkedModelSerializer):
+class FieldSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.FormField
         fields = ('id', 'name', 'control_type', 'control_data', 'form', 'url')
@@ -56,11 +57,6 @@ class TinyActionSerializer(serializers.HyperlinkedModelSerializer):
         model = models.Action
         fields = ('name',)
 
-class WriteFormSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.Form
-        fields = ('action', 'title', 'description', 'next_state', 'active', 'url')
-
 class ViewFormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
     action = TinyActionSerializer()
@@ -68,13 +64,13 @@ class ViewFormSerializer(serializers.HyperlinkedModelSerializer):
         model = models.Form
         fields = ('fields', 'action', 'title', 'description', 'url')
 
-class FormSerializer(serializers.HyperlinkedModelSerializer):
-    fields = FieldSerializer(many=True)
+class FormSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
+    fields = FieldSerializer(required=False, many=True)
     action = ActionSerializer()
+
     class Meta:
         model = models.Form
-        fields = ('fields', 'action', 'title', 'description', 'url', 'id',
-        'next_state', 'active')
+        fields = ('fields', 'action', 'title', 'description', 'url', 'id', 'next_state', 'active')
 
 class ResponseSerializer(serializers.Serializer):
     email = serializers.EmailField()
