@@ -64,11 +64,7 @@ class ActivistViewSet(IntrospectiveViewSet):
 class SignupViewSet(IntrospectiveViewSet):
     queryset = models.Signup.objects.all()
     permission_classes = (IsAuthenticated,)
-
-    def get_serializer_class(self):
-        if self.request.method in ('GET',):
-            return serializers.SignupSerializer
-        return serializers.WriteSignupSerializer
+    serializer_class = serializers.SignupSerializer
 
 class ActionViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -146,12 +142,7 @@ class ActionViewSet(IntrospectiveViewSet):
 class FormViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Form.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method in ('GET',):
-            return serializers.FormSerializer
-        return serializers.WriteFormSerializer
-
+    serializer_class = serializers.FormSerializer
 
     @detail_route(methods=['get'], permission_classes=(AllowAny,))
     def embed(self, request, pk=None):

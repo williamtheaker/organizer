@@ -2,9 +2,10 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from crm.models import ChoiceEnum, Activist
+from crm.models import Activist
+from enumfields import EnumIntegerField, Enum
 
-class DistrictType(ChoiceEnum):
+class DistrictType(Enum):
     local_council = 0
     local_executive = 1
     state_lower = 2
@@ -18,7 +19,7 @@ class District(models.Model):
     ocd_id = models.CharField(max_length=100)
     key = models.CharField(max_length=100)
     label = models.CharField(max_length=100)
-    type = models.IntegerField(choices=DistrictType.choices())
+    type = EnumIntegerField(DistrictType)
 
     def __unicode__(self):
         return "%s - %s - %s"%(self.ocd_id, DistrictType(self.type).name, self.label)
