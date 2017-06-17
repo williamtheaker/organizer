@@ -27,3 +27,4 @@ django-rq
 django-slack-oauth
 django-redis-cache
 drf-enum-field
+dotenv
