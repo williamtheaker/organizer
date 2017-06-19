@@ -10,7 +10,7 @@ const axiosConfig = {
   xsrfHeaderName: 'X-CSRFToken'
 }
 
-const Client = axios.create(axiosConfig);
+export const Client = axios.create(axiosConfig);
 
 const workPool = new PSemaphore({
   rooms: 1

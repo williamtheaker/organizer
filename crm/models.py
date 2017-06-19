@@ -13,6 +13,7 @@ class SignupState(Enum):
     attended = 2
     noshow = 3
     cancelled = 4
+    contacted = 5
 
     class Labels:
         prospective = 'Prospective'
@@ -20,6 +21,7 @@ class SignupState(Enum):
         attended = 'Attended'
         noshow = 'No-Show'
         cancelled = 'Cancelled'
+        contacted = "Contacted"
 
 class FormControlType(Enum):
     text = 0
@@ -34,6 +36,10 @@ class Activist(models.Model):
     address = AddressField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     do_not_email = models.BooleanField(default=False)
+
+    def rank(self):
+        attended = len(self.signups.all().filter(state=SignupState.attended)[0:5])
+        return attended
 
     def __unicode__(self):
         ret = self.name.strip()

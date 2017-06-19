@@ -20,12 +20,12 @@ export default class StoreBinding extends React.Component {
   }
 
   componentDidMount() {
-    this.props.store.on('update', this.onStoreUpdated);
+    this.props.store.on('changed', this.onStoreUpdated);
     this.props.store.notify();
   }
 
   componentWillUnmount() {
-    this.props.store.removeListener('update', this.onStoreUpdated);
+    this.props.store.off('changed', this.onStoreUpdated);
   }
 
   render() {
