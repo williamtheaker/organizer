@@ -1,17 +1,18 @@
 import React from 'react'
-import { ModelDataStore } from './RowDataStore'
-import { Table } from './DataTable'
+import _ from 'lodash'
 import { Link } from 'react-router-dom'
+import { Table } from './DataTable'
 import { titles } from '../TitleManager'
-import { Action } from '../API'
+import { ActionCollection } from '../Model'
 
 import ModelIndex from './ModelIndex'
 
 export default class ActionIndex extends React.Component {
   constructor(props) {
     super(props);
-    this.store = new ModelDataStore(Action)
-    this.store.reload();
+    this.actions = new ActionCollection();
+    this.actions.on('add remove change', () => this.forceUpdate());
+    this.actions.fetch();
   }
 
   componentDidMount() {
@@ -19,17 +20,23 @@ export default class ActionIndex extends React.Component {
   }
 
   render() {
-    const columns = [
-      {label: "Name",
-       value: "name",
-       cell: ({row:{id, name}}) => <Link to={`/organize/action/${id}`}>{name}</Link>},
-      {label: "Date",
-       value: 'date'},
-      {label: "Signups",
-       value: "signups.length"}
-    ];
+    const actionRows = _.map(this.actions.models, action => (
+      <tr key={action.cid}>
+        <td><Link to={`/organize/action/${action.id}`}>{action.name}</Link></td>
+        <td>{action.date}</td>
+      </tr>
+    ))
     return (
-      <ModelIndex columns={columns} store={this.store} />
+      <div>
+        <h1>Actions</h1>
+        <table className="data-table hover">
+          <tr>
+            <th>Name</th>
+            <th>Date</th>
+          </tr>
+          {actionRows}
+        </table>
+      </div>
     )
   }
 }

@@ -10,43 +10,10 @@ import { Activist } from '../API'
 import ActionReport from './ActionReport'
 import FormEditor from './FormEditor'
 import ActionIndex from './ActionIndex'
-import ActivistIndex from './ActivistIndex'
 
 import { users, withCurrentUser } from '../UserManager'
 import HTML5Backend from 'react-dnd-html5-backend'
 import { DragDropContext } from 'react-dnd'
-
-class OrganizerDashboard extends React.Component {
-  constructor(props) {
-    super(props);
-    this.store = new ModelDataStore(Activist, {sort: '-created'})
-    this.store.reload();
-  }
-
-  componentDidMount() {
-    titles.setSubtitle("Dashboard");
-  }
-
-  render() {
-    return (
-      <div className="row">
-        <div className="small-12 columns">
-          <div className="row">
-            <div className="small-12 columns">
-              <h1>Organizer Dashboard</h1>
-            </div>
-          </div>
-          <div className="row">
-            <div className="small-6 columns">
-              <h2>New Activists</h2>
-              <Table store={this.store} />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-}
 
 class OrganizerIndexBase extends React.Component {
   componentDidMount() {
@@ -85,8 +52,7 @@ class OrganizerIndexBase extends React.Component {
               <Route exact path={`${this.props.match.url}/action`} component={ActionIndex}/>
               <Route path={`${this.props.match.url}/action/:action_id/form/:id`} component={FormEditor}/>
               <Route path={`${this.props.match.url}/action/:id`} component={ActionReport}/>
-              <Route exact path={`${this.props.match.url}/activist`} component={ActivistIndex}/>
-              <Route component={OrganizerDashboard}/>
+              <Route component={ActionIndex}/>
             </Switch>
           </div>
         </div>

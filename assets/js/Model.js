@@ -84,6 +84,11 @@ export const Action = DjangoModel.extend({
   }
 });
 
+export const ActionCollection = DjangoCollection.extend({
+  url: '/api/actions/',
+  model: Action
+})
+
 export const Form = DjangoModel.extend({
   urlRoot: '/api/forms/',
   props: {
