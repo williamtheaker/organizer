@@ -13,6 +13,8 @@ import ActionIndex from './ActionIndex'
 import ActivistIndex from './ActivistIndex'
 
 import { users, withCurrentUser } from '../UserManager'
+import HTML5Backend from 'react-dnd-html5-backend'
+import { DragDropContext } from 'react-dnd'
 
 class OrganizerDashboard extends React.Component {
   constructor(props) {
@@ -111,5 +113,5 @@ class OrganizerIndexBase extends React.Component {
   }
 }
 
-const OrganizerIndex = withCurrentUser(OrganizerIndexBase);
+const OrganizerIndex = DragDropContext(HTML5Backend)(withCurrentUser(OrganizerIndexBase));
 export default OrganizerIndex;

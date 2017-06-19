@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, relations
 from . import models
 from django.contrib.auth.models import User
 import address
@@ -11,13 +11,21 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class ActivistSerializer(serializers.HyperlinkedModelSerializer):
     address = serializers.SerializerMethodField()
+    rank = serializers.IntegerField(read_only=True)
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            return super(ActivistSerializer, self).to_internal_value(data)
+        else:
+            return relations.HyperlinkedRelatedField('activist-detail',
+                    queryset=models.Activist.objects.all()).to_internal_value(data)
 
     def get_address(self, obj):
         return unicode(obj.address)
 
     class Meta:
         model = models.Activist
-        fields = ('name',  'email', 'address', 'id', 'created', 'url')
+        fields = ('name',  'email', 'address', 'id', 'created', 'url', 'rank')
 
 class FormResponseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -52,14 +60,13 @@ class ActionSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('name', 'date', 'id', 'signups', 'forms',
                 'fields', 'url')
 
-class TinyActionSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.Action
-        fields = ('name',)
-
 class ViewFormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
-    action = TinyActionSerializer()
+    action = serializers.SerializerMethodField()
+
+    def get_action(self, obj):
+        return {'name': obj.action.name}
+
     class Meta:
         model = models.Form
         fields = ('fields', 'action', 'title', 'description', 'url')

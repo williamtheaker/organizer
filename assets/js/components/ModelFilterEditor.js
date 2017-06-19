@@ -10,7 +10,22 @@ export default class ModelFilterEditor extends React.Component {
   }
 
   doOnChange({values}) {
-    this.props.onChange(values);
+    var filters = {};
+    const filterables = _.filter(values.filters, f => f);
+    _.each(filterables, (values) => {
+      const {model_id, operator, key} = _.mapValues(values, v => v ? v.value : {});
+      const value = values.value;
+      if (model_id) {
+        filters[key] = model_id;
+      } else if (operator == "contains") {
+        filters[key+"__icontains"] = value;
+      } else if (operator == "equals") {
+        filters[key] = value;
+      } else {
+        console.log("unknown filter operator", operator);
+      }
+    });
+    this.props.store.setOptions(filters);
   }
 
   render() {

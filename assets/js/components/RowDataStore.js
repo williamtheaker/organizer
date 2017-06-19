@@ -1,10 +1,10 @@
-import EventEmitter from 'events'
 import _ from 'lodash'
 import objectPath from 'object-path'
+import Events from 'ampersand-events'
 
-export default class RowDataStore extends EventEmitter {
+export default class RowDataStore {
   constructor() {
-    super();
+    //super();
     this.data = {};
     this.filters = [];
     this.selected = [];
@@ -14,6 +14,12 @@ export default class RowDataStore extends EventEmitter {
     this.areAllSelected = _.memoize(this.areAllSelected.bind(this));
   }
 
+  clearCache() {
+    this.visibleItems.cache.clear();
+    this.selectedItems.cache.clear();
+    this.areAllSelected.cache.clear();
+  }
+
   notify() {
     var dataBundle = {
       all: this.allItems(),
@@ -21,14 +27,12 @@ export default class RowDataStore extends EventEmitter {
       selected: this.selectedItems(),
       data: this.data
     };
-    this.emit('update', dataBundle);
+    this.trigger('changed', dataBundle);
   }
 
   setData(data) {
     this.data = data;
-    this.visibleItems.cache.clear();
-    this.selectedItems.cache.clear();
-    this.areAllSelected.cache.clear();
+    this.clearCache();
     this.notify();
   }
 
@@ -94,6 +98,8 @@ export default class RowDataStore extends EventEmitter {
   }
 }
 
+_.assign(RowDataStore.prototype, Events, {});
+
 export class ModelDataStore extends RowDataStore {
   constructor(modelType, options) {
     super();
@@ -101,6 +107,7 @@ export class ModelDataStore extends RowDataStore {
     this.options = {};
     this.model = modelType;
     this.reload = _.memoize(this.reload);
+    this.onChanged = _.debounce(this.onChanged.bind(this), 50);
   }
 
   setOptions(options) {
@@ -111,9 +118,17 @@ export class ModelDataStore extends RowDataStore {
     }
   }
 
+  onChanged() {
+    this.notify();
+  }
+
   reload() {
     return this.model.getAll({...this.baseOptions, ...this.options})
-      .then(rows => this.setData({rows: rows}))
+      .then(rows => {
+        _.each(this.data.rows, row => row.off('changed', this.onChanged));
+        this.setData({rows: rows})
+        _.each(rows, row => row.on('changed', this.onChanged));
+      })
       .then(() => this.reload.cache.clear())
   }
 

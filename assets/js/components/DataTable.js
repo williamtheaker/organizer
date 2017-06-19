@@ -10,6 +10,10 @@ export class Cell extends React.Component {
 
     const value = objectPath.get(this.props.row, this.props.column.value);
     Promise.resolve(value).then(v => this.setState({value: v}));
+
+    if ('on' in this.props.row) {
+      this.props.row.on('changed:'+this.props.column.value, () => this.forceUpdate());
+    }
   }
 
   render() {
@@ -22,7 +26,6 @@ export class Cell extends React.Component {
 }
 
 export class Row extends React.Component {
-
   render() {
     const row = this.props.row;
     const cells = _.map(this.props.columns, (column) => {
