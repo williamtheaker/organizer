@@ -39,5 +39,5 @@ urlpatterns = [
     url(r'^django-rq/', include('django_rq.urls')),
     url(r'^anymail/', include('anymail.urls')),
     url(r'^slack/', include('django_slack_oauth.urls')),
-    url(r'^', views.index),
+    url(r'^', include('crm.urls')),
 ]

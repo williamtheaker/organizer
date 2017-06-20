@@ -4,6 +4,7 @@ import AmpersandModel from 'ampersand-model'
 import AmpersandRestCollection from 'ampersand-rest-collection'
 import _ from 'lodash'
 import moment from 'moment'
+import slug from 'slug'
 
 import { csrftoken } from './Django'
 
@@ -89,6 +90,15 @@ export const Action = DjangoModel.extend({
     date: ['moment', true, () => moment()],
     fields: ['array', false, () => []],
     forms: ['array', false, () => []]
+  },
+  derived: {
+    slug: {
+      deps: ['name'],
+      type: 'string',
+      fn() {
+        return slug(this.name);
+      }
+    }
   },
   collections: {
     signups: SignupCollection,

@@ -35,7 +35,7 @@ class OrganizerIndexBase extends React.Component {
   render() {
     if (this.props.logged_in) {
       return (
-        <div className="row">
+        <div className="row organizer-index">
           <div className="small-12 columns">
             <ul className="menu">
               <MenuNavLink to={`${this.props.match.url}`} exact><i className="fa fa-home"></i></MenuNavLink>
@@ -55,7 +55,7 @@ class OrganizerIndexBase extends React.Component {
       );
     } else {
       return (
-        <div className="row">
+        <div className="row organizer-index">
           <div className="small-12 columns signin">
             <h1>East Bay Forward Organizer</h1>
             <a href={SLACK_LOGIN_URL}>
