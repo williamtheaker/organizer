@@ -111,6 +111,11 @@
   "jest": {
     "testMatch": [
       "**/*test.js"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "assets/js/**/*.js",
+      "!**/node_modules/**"
     ]
   }
 }
