@@ -55,6 +55,7 @@
     "react-datepicker": "^0.48.0",
     "react-dnd": "^2.4.0",
     "react-dnd-html5-backend": "^2.4.1",
+    "react-dnd-test-backend": "^2.4.0",
     "react-dom": "^15.6.1",
     "react-form": "^1.2.8",
     "react-gravatar": "^2.6.3",
