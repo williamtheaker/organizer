@@ -1,7 +1,6 @@
 import React from 'react'
 import _ from 'lodash'
 import { Link } from 'react-router-dom'
-import { Table } from './DataTable'
 import { titles } from '../TitleManager'
 import { ActionCollection } from '../Model'
 
@@ -21,21 +20,29 @@ export default class ActionIndex extends React.Component {
 
   render() {
     const actionRows = _.map(this.actions.models, action => (
-      <tr key={action.cid}>
-        <td><Link to={`/organize/action/${action.id}`}>{action.name}</Link></td>
-        <td>{action.date}</td>
-      </tr>
+      <div className="card" key={action.cid}>
+        <Link to={`/organize/action/${action.id}`}>
+          <div className="right"><div className="badge">{action.signups.length}</div></div>
+          <div className="title">{action.name}</div>
+          {action.date.fromNow()}
+        </Link>
+      </div>
     ))
+    const addAction = (
+      <div className="card">
+        <Link to={`/organize/action/new`}>
+          <div className="title">Create new action</div>
+          Create a new action, get signups, change the game.
+        </Link>
+      </div>
+    )
     return (
       <div>
         <h1>Actions</h1>
-        <table className="data-table hover">
-          <tr>
-            <th>Name</th>
-            <th>Date</th>
-          </tr>
+        <div className="action-list">
+          {addAction}
           {actionRows}
-        </table>
+        </div>
       </div>
     )
   }

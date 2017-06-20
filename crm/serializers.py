@@ -52,9 +52,9 @@ class ActionFormSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('fields', 'title', 'description', 'id', 'url', 'active')
 
 class ActionSerializer(serializers.HyperlinkedModelSerializer):
-    signups = SignupSerializer(many=True)
-    fields = FieldSerializer(many=True)
-    forms = ActionFormSerializer(many=True)
+    signups = SignupSerializer(many=True, read_only=True)
+    fields = FieldSerializer(many=True, read_only=True)
+    forms = ActionFormSerializer(many=True, read_only=True)
     class Meta:
         model = models.Action
         fields = ('name', 'date', 'id', 'signups', 'forms',

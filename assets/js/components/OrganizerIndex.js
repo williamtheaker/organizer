@@ -1,7 +1,5 @@
 import React from 'react'
-import { ModelDataStore } from './RowDataStore'
 import { titles } from './../TitleManager'
-import { Table } from './DataTable'
 import { Route, Link, Switch } from 'react-router-dom'
 import MenuNavLink from './MenuNavLink'
 
@@ -41,8 +39,6 @@ class OrganizerIndexBase extends React.Component {
           <div className="small-12 columns">
             <ul className="menu">
               <MenuNavLink to={`${this.props.match.url}`} exact><i className="fa fa-home"></i></MenuNavLink>
-              <MenuNavLink to={`${this.props.match.url}/activist`}>Activists</MenuNavLink>
-              <MenuNavLink to={`${this.props.match.url}/action`}>Actions</MenuNavLink>
               <li className="menu-text">
                 Hi, {this.props.current_user.email}!
               </li>

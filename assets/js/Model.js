@@ -3,6 +3,7 @@ import Events from 'ampersand-events'
 import AmpersandModel from 'ampersand-model'
 import AmpersandRestCollection from 'ampersand-rest-collection'
 import _ from 'lodash'
+import moment from 'moment'
 
 import { csrftoken } from './Django'
 
@@ -18,6 +19,16 @@ export const DjangoModel = AmpersandModel.extend({
   ajaxConfig: DjangoConfig,
   props: {
     id: 'number'
+  },
+  dataTypes: {
+    moment: {
+      set(v) {
+        return {type: 'moment', val: moment(v)};
+      },
+      default() {
+        return moment();
+      }
+    }
   },
   derived: {
     url: {
@@ -74,8 +85,10 @@ export const ActivistCollection = DjangoCollection.extend({
 export const Action = DjangoModel.extend({
   urlRoot: '/api/actions/',
   props: {
-    name: 'string',
-    date: 'string',
+    name: ['string', true, () => "New Action"],
+    date: ['moment', true, () => moment()],
+    fields: ['array', false, () => []],
+    forms: ['array', false, () => []]
   },
   collections: {
     signups: SignupCollection,
