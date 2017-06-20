@@ -4,8 +4,6 @@ import { Link } from 'react-router-dom'
 import { titles } from '../TitleManager'
 import { ActionCollection } from '../Model'
 
-import ModelIndex from './ModelIndex'
-
 export default class ActionIndex extends React.Component {
   constructor(props) {
     super(props);
