@@ -29,7 +29,7 @@ export default (props) => {
     }
   } else {
     return (
-      <header className="row">
+      <header className="row expanded">
         <div className="small-12 columns logo logo-full">
           <Link to="/">East Bay Forward</Link>
         </div>

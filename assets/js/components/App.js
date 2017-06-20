@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Route } from 'react-router-dom'
 import { titles } from '../TitleManager'
 
 import Footer from './Footer'
-import Canvas from './Canvas'
 import Header from './Header'
 import FormView from './FormView'
 import { asyncComponent } from 'react-async-component'
@@ -32,16 +31,11 @@ export default class App extends React.PureComponent {
     return (
       <Router>
         <div>
-          <div className="row">
-            <div className="small-12 columns">
-              <Header title={this.state.title} subtitle={this.state.subtitle} />
-              <Canvas>
-                <Route exact path="/crm/f/:id" component={FormView}/>
-                <Route path="/organize" component={LazyOrganizerIndex} />
-                <Route exact path="/" component={LazyAppIndex} />
-              </Canvas>
-            </div>
-          </div>
+          <Header title={this.state.title} subtitle={this.state.subtitle} />
+          <Route exact path="/crm/f/:id" component={FormView}/>
+          <Route path="/action/:action/:id" component={FormView}/>
+          <Route path="/organize" component={LazyOrganizerIndex} />
+          <Route exact path="/" component={LazyAppIndex} />
           <Footer />
         </div>
       </Router>

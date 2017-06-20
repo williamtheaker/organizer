@@ -353,7 +353,7 @@ class FormCardBase extends React.Component {
         <h3><Link to={`/organize/action/${this.props.action.id}/form/${this.props.form.id}`}>{this.props.form.title}</Link></h3>
         <Switch onChange={this.doChange} checked={this.props.form.active} checkedChildren="On" unCheckedChildren="Off"/>
         <TextTruncate text={this.props.form.description} line={3} />
-        <Link to={`/crm/f/${this.props.form.id}/`}><i className="fa fa-link" /> Public Link</Link>
+        <Link to={`/action/${this.props.action.slug}/${this.props.form.id}/`}><i className="fa fa-link" /> Public Link</Link>
       </div>
     )
   }
