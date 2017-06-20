@@ -21,7 +21,7 @@ const HappyHouse = () => (
   </div>
 );
 
-const Thanks = (props) => (
+export const Thanks = (props) => (
   <div className="expanded row the-form">
     <div className="small-12 columns medium-7 medium-offset-1 the-response">
       <h1>Thanks!</h1>
@@ -36,7 +36,7 @@ const Thanks = (props) => (
   </div>
 );
 
-const SignupForm = (props) => (
+export const SignupForm = (props) => (
   <form method="post" onSubmit={props.submitForm}>
     <label>Email <span className="required">*</span><Text type='text' field='email' /></label>
     <label>Name <span className="required">*</span><Text type='text' field='name' /></label>

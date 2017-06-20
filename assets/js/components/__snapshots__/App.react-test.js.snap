@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Smoke test 1`] = `
+<div>
+  <header
+    className="row expanded"
+  >
+    <div
+      className="small-12 columns logo logo-full"
+    >
+      <a
+        href="/"
+        onClick={[Function]}
+      >
+        East Bay Forward
+      </a>
+    </div>
+  </header>
+  <footer>
+    <div
+      className="row"
+    >
+      <div
+        className="small-6 columns"
+      >
+        <p>
+          Made with ❤ in Oakland, CA
+        </p>
+      </div>
+      <div
+        className="small-6 columns"
+        style={
+          Object {
+            "textAlign": "right",
+          }
+        }
+      >
+        <p>
+          <a
+            href=""
+          >
+            <i
+              className="fa fa-lock"
+            />
+             Login
+          </a>
+        </p>
+      </div>
+    </div>
+  </footer>
+</div>
+`;
