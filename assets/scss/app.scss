@@ -9,6 +9,8 @@
 @include foundation-table;
 @include foundation-top-bar;
 
+@import '~react-datepicker/dist/react-datepicker-cssmodules.css';
+
 button.options {
   padding: 0.1rem 0.5rem 0.1rem 0.5rem;
 }
@@ -103,6 +105,41 @@ button.options {
   border: 3px solid;
 
   box-sizing: content-box;
+}
+
+.action-report {
+  h2 {
+    display: flex;
+    input {
+      padding: 0.1rem;
+      font-size: xx-large;
+      margin-top: auto;
+      margin-bottom: auto;
+      margin-left: 0.5rem;
+      border: 0;
+    }
+  }
+}
+
+.action-list {
+  display: flex;
+  flex-wrap: wrap;
+  .card {
+    margin: 1em;
+    .badge {
+      @include round-badge;
+      font-size: x-large;
+    }
+    width: 15rem;
+    border: 2px solid black;
+    padding: 0.5rem;
+    .title {
+      font-size: xx-large;
+    }
+    .right {
+      float: right;
+    }
+  }
 }
 
 .conversion-ui {

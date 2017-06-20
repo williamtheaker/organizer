@@ -17,6 +17,7 @@ import ActivistCard from './ActivistCard'
 import Spinner from './Spinner'
 import Modal from 'react-modal'
 import { ContextMenuTrigger, ContextMenu, MenuItem } from 'react-contextmenu'
+import DatePicker from 'react-datepicker'
 
 class Collapsable extends React.Component {
   constructor(props) {
@@ -98,6 +99,8 @@ const ColumnTarget = withState(DropTarget("card", columnSpec, collectTarget)((pr
     _.each(myRows, r => r.set({selected: false}))
   }
   const spinner = props.model.loaded ? null : <Spinner />;
+  const totalCards = props.model.rows.length;
+  const pct = (totalCards == 0) ? "-" : ((cards.length / totalCards)*100)+"%"
   return props.connectDropTarget((
     <div className={"target "+ (props.isOver ? "hover" : "")}>
       <ContextMenuTrigger id={props.state}>
@@ -113,7 +116,7 @@ const ColumnTarget = withState(DropTarget("card", columnSpec, collectTarget)((pr
         </h2>
         <div className="meta">
           <div>{cards.length}<p>cards</p></div>
-          <div>{(cards.length / props.model.length)*100}%<p>of all cards</p></div>
+          <div>{pct}<p>of all cards</p></div>
         </div>
         <div className="add-activist">
           <ActivistAutocomplete inputProps={{placeholder:"Add activist", type:"text"}} onSelected={(a) => props.onAddActivistSelected(a)}/>
@@ -223,10 +226,14 @@ const ConversionState = AmpersandState.extend({
     }, 50));
   },
   update() {
-    this.loaded = false;
-    this.action.fetch();
-    this.forms.fetch({data: {action_id: this.action.id}});
-    this.rows.fetch({success: () => this.loaded=true, data: {action_id: this.action.id}});
+    if (this.action.isNew()) {
+      this.loaded = true;
+    } else {
+      this.loaded = false;
+      this.action.fetch();
+      this.forms.fetch({data: {action_id: this.action.id}});
+      this.rows.fetch({success: () => this.loaded=true, data: {action_id: this.action.id}});
+    }
   }
 });
 
@@ -246,15 +253,6 @@ class ActivistConversionUIBase extends React.Component {
   }
 
   render() {
-    /*const extraDrops = (
-      <div className={"extra-drops " + (this.showMore() ? "show" : "hide")} >
-        <a onClick={() => this.setState({showMore: !this.state.showMore})} >More...</a>
-        <div className="container">
-          <Column name="No-Show" state="noshow" model={this.props.model} />
-          <Column name="Cancelled" state="cancelled" model={this.props.model} />
-        </div>
-      </div>
-    )*/
     const extraDrops = null;
     return (
       <div className="conversion-ui">
@@ -430,21 +428,25 @@ export default class ActionReport extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {showEmail: false};
+    const isNew = this.props.match.params.id == "new"
+    const actionData = isNew ? {} : {id: Number(this.props.match.params.id)}
     this.model = new ConversionState({
-      action: {
-        id: Number(this.props.match.params.id)
-      }
+      action: actionData
     });
+    this.model.on('change:loaded', () => this.forceUpdate());
+    this.model.action.on('change:name change:date', () => this.forceUpdate());
     this.model.update();
   }
 
   render() {
-    // TODO: Add remove from action, send email buttons
-    const actions = {
-      emailActivists: {label: "Email selected activists", component: (props) => <EmailEditor action_id={this.props.match.params.id} {...props} />},
-    };
     return (
-      <div>
+      <div className="action-report">
+        <h2>Title: <input type="text" disabled={!this.model.loaded} onBlur={(evt) => this.model.action.save({name: evt.target.value}, {patch: true})} value={this.model.action.name} onChange={(evt) => this.model.action.set({name: evt.target.value})} /></h2>
+        <div>
+          <DatePicker
+            selected={this.model.action.date}
+            onChange={(date) => this.model.action.save({date: date}, {patch: true})}/>
+          </div>
         <div className="row">
           <div className="small-12 columns">
             <Collapsable title="Forms">

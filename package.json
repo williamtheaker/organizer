@@ -45,6 +45,7 @@
     "react-async-component": "^1.0.0-beta.3",
     "react-autocomplete": "^1.5.5",
     "react-contextmenu": "git://github.com/tdfischer/react-contextmenu#build",
+    "react-datepicker": "^0.47.0",
     "react-dnd": "^2.4.0",
     "react-dnd-html5-backend": "^2.4.1",
     "react-dom": "^15.5.4",
