@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.db.models import Count, Subquery, OuterRef
 from django.urls import reverse
 from address.models import AddressField
 from enumfields import EnumIntegerField, Enum
@@ -29,6 +30,15 @@ class FormControlType(Enum):
     multiple_choice = 2
     options = 3
 
+class ActivistManager(models.Manager):
+    def get_queryset(self):
+        signups = Signup.objects.filter(activist=OuterRef('pk'),
+                state=SignupState.attended).order_by().values('activist')
+        count_signups = signups.annotate(c=Count('*')).values('c')
+        return super(ActivistManager,
+                self).get_queryset().annotate(calc_rank=Subquery(count_signups,
+                    output_field=models.IntegerField(null=False)))
+
 class Activist(models.Model):
     name = models.CharField(max_length=200)
     email = models.CharField(max_length=200)
@@ -37,9 +47,15 @@ class Activist(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     do_not_email = models.BooleanField(default=False)
 
+    objects = ActivistManager()
+
+    @property
     def rank(self):
-        attended = len(self.signups.all().filter(state=SignupState.attended)[0:5])
-        return attended
+        if getattr(self, 'calc_rank', None) is not None:
+            return self.calc_rank
+        else:
+            return min(5,
+                self.signups.filter(state=SignupState.attended).count())
 
     def __unicode__(self):
         ret = self.name.strip()
@@ -119,6 +135,9 @@ class Signup(models.Model):
     state = EnumIntegerField(SignupState)
 
     objects = SignupManager()
+
+    class Meta:
+        unique_together = ('activist', 'action')
 
     def __unicode__(self):
         return "%s: %s (%s)"%(unicode(self.activist), unicode(self.action),
