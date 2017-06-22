@@ -13,6 +13,7 @@ import { DropTarget } from 'react-dnd'
 import AmpersandState from 'ampersand-state'
 import { withState, FormCollection, ActivistCollection, Action as AmpersandAction, Signup, SignupCollection } from '../Model'
 import { CSSTransitionGroup } from 'react-transition-group'
+import SignupCard from './SignupCard'
 import ActivistCard from './ActivistCard'
 import Spinner from './Spinner'
 import Modal from 'react-modal'
@@ -74,20 +75,32 @@ const collectTarget = (connect, monitor) => ({
 
 const columnSpec = {
   drop(props, monitor, component) {
-    var {signup} = monitor.getItem();
-    signup.save({state: props.state}, {patch: true});
+    var {signup, activist} = monitor.getItem();
+    if (signup) {
+      signup.save({state: props.state}, {patch: true});
+    } else if (activist) {
+      props.model.rows.create({
+        activist: {id: activist.id},
+        state: props.state,
+        action: props.model.action.url
+      });
+    }
     return {}
   },
   canDrop(props, monitor) {
-    var {signup} = monitor.getItem();
-    return signup.state != props.state;
+    var {signup, activist} = monitor.getItem();
+    if (signup) {
+      return signup.state != props.state;
+    } else if (activist) {
+      return true;
+    }
   }
 }
 
-const ColumnTarget = withState(DropTarget("card", columnSpec, collectTarget)((props) => {
+const ColumnTarget = withState(DropTarget(["signup", "activist"], columnSpec, collectTarget)((props) => {
   const myRows = props.model[props.state];
   const cards = _.map(myRows, (row) => (
-    <ActivistCard
+    <SignupCard
       key={row.id}
       signup={row}
       onDragging={props.onDragging} />
@@ -215,11 +228,13 @@ const ConversionState = AmpersandState.extend({
   },
   collections: {
     rows: SelectableSignupCollection,
+    suggestions: ActivistCollection,
     forms: FormCollection
   },
   initialize() {
     this.rows.on('add remove change:state change', _.debounce(() => {
       this.changeHash += 1;
+      this.suggestions.fetch({uri: this.action.url + 'suggestions/'});
     }, 50));
     this.forms.on('add remove change', _.debounce(() => {
       this.changeHash += 1;
@@ -231,6 +246,7 @@ const ConversionState = AmpersandState.extend({
     } else {
       this.loaded = false;
       this.action.fetch();
+      this.suggestions.fetch({uri: this.action.url + 'suggestions/'});
       this.forms.fetch({data: {action_id: this.action.id}});
       this.rows.fetch({success: () => this.loaded=true, data: {action_id: this.action.id}});
     }
@@ -242,6 +258,7 @@ class ActivistConversionUIBase extends React.Component {
     super(props);
     this.state = {dragging: false, showMore: false};
     this.onDragging = this.onDragging.bind(this);
+    this.props.model.suggestions.on('change add reset', () => this.forceUpdate());
   }
 
   onDragging(d) {
@@ -253,14 +270,21 @@ class ActivistConversionUIBase extends React.Component {
   }
 
   render() {
-    const extraDrops = null;
+    const suggestions = this.props.model.suggestions.map(f => (
+      <ActivistCard activist={f} />
+    ));
     return (
       <div className="conversion-ui">
-        <Column name="Prospective" onDragging={this.onDragging} state="prospective" model={this.props.model}/>
-        <Column name="Contacted" onDragging={this.onDragging} state="contacted" model={this.props.model} />
-        <Column name="Confirmed" onDragging={this.onDragging} state="confirmed" model={this.props.model} />
-        <Column name="Attended" onDragging={this.onDragging} state="attended" model={this.props.model} />
-        {extraDrops}
+        <h2>Suggested Activists</h2>
+        <div className="suggestions">
+          {suggestions}
+        </div>
+        <div className="card-columns">
+          <Column name="Prospective" onDragging={this.onDragging} state="prospective" model={this.props.model}/>
+          <Column name="Contacted" onDragging={this.onDragging} state="contacted" model={this.props.model} />
+          <Column name="Confirmed" onDragging={this.onDragging} state="confirmed" model={this.props.model} />
+          <Column name="Attended" onDragging={this.onDragging} state="attended" model={this.props.model} />
+        </div>
       </div>
     )
   }
