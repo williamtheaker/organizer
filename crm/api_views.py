@@ -5,7 +5,7 @@ import logging
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from django.template import loader, engines
-from django.db.models import Q
+from django.db.models import Q, Count, Subquery, OuterRef
 from django.contrib.auth import logout
 import django_rq
 from emails.models import TemplatedEmail
@@ -70,6 +70,17 @@ class ActionViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = models.Action.objects.all()
     serializer_class = serializers.ActionSerializer
+
+    @detail_route(methods=['get'])
+    def suggestions(self, request, pk=None):
+        action_obj = self.get_object()
+        current_activists = models.Activist.objects.filter(signups__action=action_obj)
+        related_actions = models.Action.objects.filter(signups__activist__in=current_activists)
+        related_signups = models.Signup.objects.filter(action__in=related_actions).exclude(activist__in=current_activists)
+        related_activists = models.Activist.objects.filter(signups__in=related_signups).order_by('-calc_rank').distinct()[0:5]
+        serializer = serializers.ActivistSerializer(related_activists,
+                context={'request': request}, many=True)
+        return Response({'results': serializer.data})
 
     @detail_route(methods=['post'])
     def bulk_add_activists(self, request, pk=None):
