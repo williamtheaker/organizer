@@ -44,7 +44,11 @@ export const DjangoModel = AmpersandModel.extend({
 export const DjangoCollection = AmpersandRestCollection.extend({
   ajaxConfig: DjangoConfig,
   parse(response) {
-    return response.results;
+    if (response.results) {
+      return response.results;
+    } else {
+      return response;
+    }
   }
 })
 
@@ -86,7 +90,7 @@ export const ActivistCollection = DjangoCollection.extend({
 export const Action = DjangoModel.extend({
   urlRoot: '/api/actions/',
   props: {
-    name: ['string', true, () => "New Action"],
+    name: ['string', true, () => "Untitled"],
     date: ['moment', true, () => moment()],
     fields: ['array', false, () => []],
     forms: ['array', false, () => []]

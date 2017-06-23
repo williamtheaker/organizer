@@ -40,6 +40,7 @@
     "lazy-route": "^1.0.7",
     "lodash": "^4.17.4",
     "lodash-webpack-plugin": "^0.11.4",
+    "material-ui": "^0.18.3",
     "moment": "^2.18.1",
     "node-sass": "^4.5.3",
     "object-path": "^0.11.4",

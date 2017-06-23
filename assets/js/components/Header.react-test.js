@@ -2,11 +2,14 @@ import React from 'react'
 import { mount } from 'enzyme'
 import { MemoryRouter as Router }  from 'react-router-dom'
 import Header from './Header'
+import ThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 const WrappedHeader = (props) => (
-  <Router>
-    <Header {...props} />
-  </Router>
+  <ThemeProvider>
+    <Router>
+      <Header {...props} />
+    </Router>
+  </ThemeProvider>
 )
 
 test('Smoke test', () => {

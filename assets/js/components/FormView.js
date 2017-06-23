@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom'
 import Spinner from './Spinner'
 import moment from 'moment'
 import AddToCalendar from 'react-add-to-calendar'
+import { RaisedButton, Divider, Card, CardHeader, Paper } from 'material-ui'
 
 import FormFieldForm from './FormFieldForm'
 
@@ -58,8 +59,36 @@ export const SignupForm = (props) => (
     <NestedForm field='fields'>
       <FormFieldForm fields={props.fields} />
     </NestedForm>
-    <input type="submit" className="button" value="Submit" />
+    <RaisedButton label="Submit" fullWidth={true} primary={true} labelPosition="before" containerElement="label">
+      <button type="submit" />
+    </RaisedButton>
   </form>
+)
+
+export const FormInputView = (props) => (
+  <Paper zDepth={2} className="expanded row the-form">
+    <Card className="small-12 columns medium-7 medium-offset-1 the-ask">
+      <h1>{props.form.title}</h1>
+      <div className="body">
+        <ReactMarkdown source={props.form.description} />
+      </div>
+      <Divider />
+      <p className="error">{props.serverError}</p>
+      <Form onSubmit={props.onSubmit} >
+        {({ submitForm, setAllTouched}) => {
+          return (
+            <SignupForm submitForm={submitForm} fields={props.form.fields} />
+          )
+        }}
+      </Form>
+    </Card>
+    <Paper zDepth={2} className="medium-3 columns meta">
+      <div className="name">{props.form.action.name}</div>
+      <div className="date">{props.dateAsMoment.format('MMMM Do YYYY, h:mm:ss a')}</div>
+      <AddToCalendar event={props.eventDescription}/>
+      <div className="until">{props.dateAsMoment.fromNow()}</div>
+    </Paper>
+  </Paper>
 )
 
 export default class FormView extends React.PureComponent {
@@ -146,22 +175,8 @@ export default class FormView extends React.PureComponent {
   }
 
   render() {
-    if (this.state.submitted) {
-      const asMoment = moment(this.state.form.action.date);
-      const asEvent = {
-        title: this.state.form.action.name,
-        location: '',
-        description:this.state.form.description,
-        startTime: asMoment.format(),
-        endTime: asMoment.add('2 hour').format()
-      };
-      return (
-        <Thanks asMoment={asMoment} asEvent={asEvent} form={this.state.form} onSubmitAnother={this.reload.bind(this)} />
-      )
-    } else if (this.state.loading) {
-      return (
-        <Spinner />
-      )
+    if (this.state.loading) {
+      return <Spinner />
     } else {
       const asMoment = moment(this.state.form.action.date);
       const asEvent = {
@@ -171,31 +186,24 @@ export default class FormView extends React.PureComponent {
         startTime: asMoment.format(),
         endTime: asMoment.add('2 hour').format()
       };
-      return (
-        <div className="expanded row the-form">
-          <div className="small-12 columns medium-7 medium-offset-1 the-ask">
-            <h1>{this.state.form.title}</h1>
-            <div className="body">
-              <ReactMarkdown source={this.state.form.description} />
-            </div>
-            <p className="error">{this.state.serverError}</p>
-            <Form ref={(r) => {this._form = r}} onSubmit={this.handleSubmit} >
-              {({ submitForm, setAllTouched}) => {
-                this.setAllTouched = setAllTouched;
-                return (
-                  <SignupForm submitForm={submitForm} fields={this.state.form.fields} />
-                )
-              }}
-            </Form>
-          </div>
-          <div className="medium-3 columns meta">
-            <div className="name">{this.state.form.action.name}</div>
-            <div className="date">{asMoment.format('MMMM Do YYYY, h:mm:ss a')}</div>
-            <AddToCalendar event={asEvent}/>
-            <div className="until">{asMoment.fromNow()}</div>
-          </div>
-        </div>
-      )
+      if (this.state.submitted) {
+        return (
+          <Thanks
+            asMoment={asMoment}
+            asEvent={asEvent}
+            form={this.state.form}
+            onSubmitAnother={this.reload.bind(this)} />
+        )
+      } else {
+        return (
+          <FormInputView
+            form={this.state.form}
+            dateAsMoment={asMoment}
+            eventDescription={asEvent}
+            serverError={this.state.serverError}
+          />
+        )
+      }
     }
   }
 }

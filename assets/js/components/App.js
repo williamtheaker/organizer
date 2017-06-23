@@ -6,6 +6,7 @@ import Footer from './Footer'
 import Header from './Header'
 import FormView from './FormView'
 import { asyncComponent } from 'react-async-component'
+import ThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 const LazyOrganizerIndex = asyncComponent({
   resolve: () => import('./OrganizerIndex').then(m => m.default)
@@ -29,16 +30,18 @@ export default class App extends React.PureComponent {
 
   render() {
     return (
-      <Router>
-        <div>
-          <Header title={this.state.title} subtitle={this.state.subtitle} />
-          <Route exact path="/crm/f/:id" component={FormView}/>
-          <Route path="/action/:action/:id" component={FormView}/>
-          <Route path="/organize" component={LazyOrganizerIndex} />
-          <Route exact path="/" component={LazyAppIndex} />
-          <Footer />
-        </div>
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <div>
+            <Header title={this.state.title} subtitle={this.state.subtitle} />
+            <Route exact path="/crm/f/:id" component={FormView}/>
+            <Route path="/action/:action/:id" component={FormView}/>
+            <Route path="/organize" component={LazyOrganizerIndex} />
+            <Route exact path="/" component={LazyAppIndex} />
+            <Footer />
+          </div>
+        </Router>
+      </ThemeProvider>
     )
   }
 }

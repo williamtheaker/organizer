@@ -17,8 +17,8 @@ import SignupCard from './SignupCard'
 import ActivistCard from './ActivistCard'
 import Spinner from './Spinner'
 import Modal from 'react-modal'
-import { ContextMenuTrigger, ContextMenu, MenuItem } from 'react-contextmenu'
 import DatePicker from 'react-datepicker'
+import { TextField, RaisedButton, ListItem, List, Avatar, Divider, Paper, Card, CardHeader, CardText } from 'material-ui'
 
 class Collapsable extends React.Component {
   constructor(props) {
@@ -113,35 +113,22 @@ const ColumnTarget = withState(DropTarget(["signup", "activist"], columnSpec, co
   }
   const spinner = props.model.loaded ? null : <Spinner />;
   const totalCards = props.model.rows.length;
-  const pct = (totalCards == 0) ? "-" : ((cards.length / totalCards)*100)+"%"
+  const pct = Math.round((totalCards == 0) ? "-" : ((cards.length / totalCards)*100))+"%"
   return props.connectDropTarget((
     <div className={"target "+ (props.isOver ? "hover" : "")}>
-      <ContextMenuTrigger id={props.state}>
-        <ContextMenu id={props.state}>
-          <MenuItem onClick={selectAll} >Select All</MenuItem> 
-          <MenuItem onClick={selectNone} >Select None</MenuItem> 
-        </ContextMenu>
-        <h2>
-          {props.name}
-          <ContextMenuTrigger showOnClick={true} holdToDisplay={-1} renderTag='span' id={props.state}>
-            <button className="options"><i className="fa fa-ellipsis-v" /></button>
-          </ContextMenuTrigger>
-        </h2>
-        <div className="meta">
-          <div>{cards.length}<p>cards</p></div>
-          <div>{pct}<p>of all cards</p></div>
-        </div>
-        <div className="add-activist">
-          <ActivistAutocomplete inputProps={{placeholder:"Add activist", type:"text"}} onSelected={(a) => props.onAddActivistSelected(a)}/>
-        </div>
-        {spinner}
-        <CSSTransitionGroup
-          transitionName="appear"
-          transitionEnterTimeout={200}
-          transitionLeaveTimeout={200}>
-          {cards}
-        </CSSTransitionGroup>
-      </ContextMenuTrigger>
+      <CardHeader subtitle={cards.length + " cards"}title={props.name} avatar={<Avatar>{pct}</Avatar>} />
+      <div className="add-activist">
+        <ActivistAutocomplete inputProps={{placeholder:"Add activist", type:"text"}} onSelected={(a) => props.onAddActivistSelected(a)}/>
+      </div>
+      {spinner}
+      <CSSTransitionGroup
+        transitionName="appear"
+        transitionEnterTimeout={200}
+        transitionLeaveTimeout={200}>
+      <List>
+        {cards}
+      </List>
+      </CSSTransitionGroup>
     </div>
   ))
 }))
@@ -157,9 +144,9 @@ class Column extends React.Component {
 
   render() {
     return (
-      <div className={"card-column card-column-"+this.props.state}>
+      <Card className={"card-column card-column-"+this.props.state}>
         <ColumnTarget {...this.props} onAddActivistSelected={this.onAddActivistSelected.bind(this)}/>
-      </div>
+      </Card>
     )
   }
 }
@@ -270,15 +257,27 @@ class ActivistConversionUIBase extends React.Component {
   }
 
   render() {
-    const suggestions = this.props.model.suggestions.map(f => (
-      <ActivistCard activist={f} />
-    ));
+    var suggestions = null;
+    if (!this.props.model.loaded) {
+      suggestions = <Spinner />
+    } else if (this.props.model.suggestions.length == 0) {
+      suggestions = <p><em>Add some activists below to see suggestions</em></p>
+    } else {
+      suggestions = this.props.model.suggestions.map(f => (
+        <ActivistCard activist={f} key={f.cid} />
+      ));
+    }
     return (
       <div className="conversion-ui">
-        <h2>Suggested Activists</h2>
-        <div className="suggestions">
-          {suggestions}
-        </div>
+        <Card className="suggestions">
+          <CardHeader title="Suggested Activists" />
+          <div className="card-list">
+            {suggestions}
+          </div>
+        </Card>
+        <p />
+        <Divider />
+        <p />
         <div className="card-columns">
           <Column name="Prospective" onDragging={this.onDragging} state="prospective" model={this.props.model}/>
           <Column name="Contacted" onDragging={this.onDragging} state="contacted" model={this.props.model} />
@@ -465,18 +464,41 @@ export default class ActionReport extends React.PureComponent {
   render() {
     return (
       <div className="action-report">
-        <h2>Title: <input type="text" disabled={!this.model.loaded} onBlur={(evt) => this.model.action.save({name: evt.target.value}, {patch: true})} value={this.model.action.name} onChange={(evt) => this.model.action.set({name: evt.target.value})} /></h2>
-        <div>
-          <DatePicker
-            selected={this.model.action.date}
-            onChange={(date) => this.model.action.save({date: date}, {patch: true})}/>
-          </div>
         <div className="row">
-          <div className="small-12 columns">
-            <Collapsable title="Forms">
-              <FormCards model={this.model} />
-            </Collapsable>
-            <h3>Activists</h3>
+          <div className="small-8 columns">
+            <h2>
+              <TextField
+                fullWidth={true}
+                floatingLabelText="Title"
+                disabled={!this.model.loaded}
+                onBlur={(evt) => this.model.action.save({name: evt.target.value}, {patch: true})}
+                value={this.model.action.name}
+                onChange={(evt) => this.model.action.set({name: evt.target.value})} />
+            </h2>
+          </div>
+          <div className="small-4 columns">
+            <Paper>
+              <List>
+                <ListItem>
+                  Date:
+                  <DatePicker
+                    selected={this.model.action.date}
+                    onChange={(date) => this.model.action.save({date: date}, {patch: true})}/>
+                </ListItem>
+                <ListItem>
+                  <Link
+                    to={`/action/${this.model.action.slug}/`}>
+                    <i className="fa fa-link" /> Sign up
+                  </Link>
+                </ListItem>
+                <ListItem>
+                  <Link
+                    to={`/action/${this.model.action.slug}/check-in`}>
+                    <i className="fa fa-link" /> Check in
+                  </Link>
+                </ListItem>
+              </List>
+            </Paper>
           </div>
         </div>
         <Modal
@@ -485,7 +507,11 @@ export default class ActionReport extends React.PureComponent {
           onRequestClose={() => this.setState({showEmail: false})}>
           <EmailEditor onFinished={() => this.setState({showEmail: false})} model={this.model} />
         </Modal>
-        <button className="button" onClick={() => this.setState({showEmail: true})}>Email activists</button>
+        <RaisedButton
+          label="Email selected activists"
+          onClick={() => this.setState({showEmail: true})}
+          primary={true} />
+        <p />
         <ActivistConversionUI model={this.model}/>
       </div>
     )

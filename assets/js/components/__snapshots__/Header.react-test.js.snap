@@ -2,8 +2,14 @@
 
 exports[`Setting titles 1`] = `"<header class=\\"row expanded\\"><div class=\\"small-12 columns logo logo-full\\"><a href=\\"/\\">East Bay Forward</a></div></header>"`;
 
-exports[`Setting titles 2`] = `"<header class=\\"row\\"><div class=\\"small-10 columns mastiff\\"><h1>title</h1></div><div class=\\"small-2 columns logo\\"><a href=\\"/\\">East Bay Forward</a></div></header>"`;
+exports[`Setting titles 2`] = `
+"<header class=\\"row\\"><div class=\\"small-10 columns mastiff\\" style=\\"color: rgba(0, 0, 0, 0.87); background-color: rgb(255, 255, 255); box-sizing: border-box; font-family: Roboto, sans-serif; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12),
+         0 1px 4px rgba(0, 0, 0, 0.12); border-radius: 2px;\\"><h1>title</h1></div><div class=\\"small-2 columns logo\\"><a href=\\"/\\">East Bay Forward</a></div></header>"
+`;
 
-exports[`Setting titles 3`] = `"<header class=\\"row\\"><div class=\\"small-10 columns mastiff\\"><h1>title</h1><h2>subtitle</h2></div><div class=\\"small-2 columns logo\\"><a href=\\"/\\">East Bay Forward</a></div></header>"`;
+exports[`Setting titles 3`] = `
+"<header class=\\"row\\"><div class=\\"small-10 columns mastiff\\" style=\\"color: rgba(0, 0, 0, 0.87); background-color: rgb(255, 255, 255); box-sizing: border-box; font-family: Roboto, sans-serif; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12),
+         0 1px 4px rgba(0, 0, 0, 0.12); border-radius: 2px;\\"><h1>title</h1></div><div class=\\"small-2 columns logo\\"><a href=\\"/\\">East Bay Forward</a></div></header>"
+`;
 
 exports[`Smoke test 1`] = `"<header class=\\"row expanded\\"><div class=\\"small-12 columns logo logo-full\\"><a href=\\"/\\">East Bay Forward</a></div></header>"`;
