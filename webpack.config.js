@@ -64,6 +64,12 @@ module.exports = {
                 'file-loader?name=[path][name].[hash].[ext].webp',
                 'webp-loader'
               ]
+            },
+            {test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+              loader: "file-loader?name=[path][name].[hash].[ext]"
+            },
+            {test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+              loader: "file-loader?name=[path][name].[hash].[ext]"
             }
         ]
     },

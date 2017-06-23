@@ -1,36 +1,27 @@
 import { DragSource } from 'react-dnd'
 import React from 'react'
 import Gravatar from 'react-gravatar'
-import { ContextMenuTrigger, ContextMenu, MenuItem } from 'react-contextmenu'
 import _ from 'lodash'
 import { Checkbox } from 'react-form'
+import { Card, CardHeader, Avatar } from 'material-ui'
 
 class ActivistCardBase extends React.Component {
   render() {
     const classes = "card " +
                     (this.props.dragging ? "dragging " : "");
     const draggable = this.props.connectDragSource(
-      <div className={classes} key={this.props.activist.cid}>
-        <ContextMenuTrigger id={this.props.activist.cid}>
-          <div className="right">
-            <div className={"rank rank-" + this.props.activist.rank}>{this.props.activist.rank}</div>
-            <ContextMenuTrigger showOnClick={true} holdToDisplay={-1} id={this.props.activist.cid}>
-              <button className="options"><i className="fa fa-ellipsis-v" /></button>
-            </ContextMenuTrigger>
-          </div>
-          <div className="name">
-            <Gravatar size={24} email={this.props.activist.email} />
-            {this.props.activist.name}
-          </div>
-          <div className="email">{this.props.activist.email}</div>
-        </ContextMenuTrigger>
+      <div>
+        <Card className={classes}>
+          <CardHeader
+            title={this.props.activist.name}
+            subtitle={this.props.activist.email}
+            avatar={<Avatar className={"rank-"+this.props.activist.rank}>{this.props.activist.rank}</Avatar>} />
+        </Card>
       </div>
     )
     return (
       <div className="card-wrap">
         {draggable}
-        <ContextMenu id={this.props.activist.cid}>
-        </ContextMenu>
       </div>
     )
   }

@@ -13,6 +13,8 @@ import { users, withCurrentUser } from '../UserManager'
 import HTML5Backend from 'react-dnd-html5-backend'
 import { DragDropContext } from 'react-dnd'
 
+import { Paper } from 'material-ui'
+
 class OrganizerIndexBase extends React.Component {
   componentDidMount() {
     if (this.props.logged_in) {
@@ -35,22 +37,29 @@ class OrganizerIndexBase extends React.Component {
   render() {
     if (this.props.logged_in) {
       return (
-        <div className="row organizer-index">
-          <div className="small-12 columns">
-            <ul className="menu">
-              <MenuNavLink to={`${this.props.match.url}`} exact><i className="fa fa-home"></i></MenuNavLink>
-              <li className="menu-text">
-                Hi, {this.props.current_user.email}!
-              </li>
-              <li><a onClick={this.doLogout}>Log Out</a></li>
-            </ul>
-            <Switch>
-              <Route exact path={`${this.props.match.url}/action`} component={ActionIndex}/>
-              <Route path={`${this.props.match.url}/action/:action_id/form/:id`} component={FormEditor}/>
-              <Route path={`${this.props.match.url}/action/:id`} component={ActionReport}/>
-              <Route component={ActionIndex}/>
-            </Switch>
-          </div>
+        <div>
+          <Paper className="row">
+            <div className="small-12 columns">
+                <ul className="menu">
+                  <MenuNavLink to={`${this.props.match.url}`} exact><i className="fa fa-home"></i></MenuNavLink>
+                  <li className="menu-text">
+                    Hi, {this.props.current_user.email}!
+                  </li>
+                  <li><a onClick={this.doLogout}>Log Out</a></li>
+                </ul>
+            </div>
+          </Paper>
+          <p />
+          <Paper className="row">
+            <div className="small-12 columns">
+              <Switch>
+                <Route exact path={`${this.props.match.url}/action`} component={ActionIndex}/>
+                <Route path={`${this.props.match.url}/action/:action_id/form/:id`} component={FormEditor}/>
+                <Route path={`${this.props.match.url}/action/:id`} component={ActionReport}/>
+                <Route component={ActionIndex}/>
+              </Switch>
+            </div>
+          </Paper>
         </div>
       );
     } else {
