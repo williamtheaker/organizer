@@ -56,6 +56,40 @@ test('Render test', () => {
   expect(tree).toMatchSnapshot();
 });
 
+describe('Form input test', () => {
+  function newForm() {
+    const form = {
+      title: '',
+      description: '',
+      action: {
+        name: '',
+      }
+    };
+    const submitHandler = jest.fn();
+    return {handler: submitHandler, component: mount(
+      <ThemeProvider>
+        <FormInputView 
+          form={form}
+          serverError={''}
+          onSubmit={submitHandler}
+          dateAsMoment={moment()}
+          eventDescription={{}}
+        />
+      </ThemeProvider>
+    )};
+  }
+
+  test('Submit with empty data', () => {
+    const {handler, component} = newForm();
+    component.find('form').simulate('submit');
+    expect(handler).toHaveBeenCalledTimes(1);
+    const submittedValues = handler.mock.calls[0][0];
+    const emptyValues = {}
+    expect(submittedValues).toMatchSnapshot(emptyValues);
+  });
+
+})
+
 test('Submit values test', () => {
 	global.INLINE_FORM_DATA = {
     "fields": [],
@@ -113,3 +147,20 @@ test('Shows thanks after submit', () => {
   expect(component.find(FormInputView)).toHaveLength(0);
   expect(component.find(Spinner)).toHaveLength(0);
 });
+
+test('Users can submit another at the end', () => {
+  const handler = jest.fn();
+  const form = {
+    action: {
+      name: ''
+    }
+  };
+  const component = shallow(
+    <Thanks
+      onSubmitAnother={handler}
+      form={form}
+      asMoment={moment()} />
+  );
+  component.find('a').simulate('click');
+  expect(handler).toHaveBeenCalledTimes(1);
+})

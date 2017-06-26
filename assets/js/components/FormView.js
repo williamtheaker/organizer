@@ -136,7 +136,7 @@ export default class FormView extends React.PureComponent {
     }
   }
 
-  handleSubmit(values) {
+  handleSubmit(values, state, props, theForm) {
     Raven.captureBreadcrumb({
       message: "Form submitted",
       category: 'action',
@@ -166,7 +166,7 @@ export default class FormView extends React.PureComponent {
                errors[key] = value.join(' ');
             }
           );
-          this._form.setAllTouched(true, {errors: errors});
+          theForm.setAllTouched(true, {errors: errors});
         } else {
           this.setState({serverError: "Recieved "+error.response.status+" from server. Try again."});
           Raven.captureException(error);
@@ -200,6 +200,7 @@ export default class FormView extends React.PureComponent {
             form={this.state.form}
             dateAsMoment={asMoment}
             eventDescription={asEvent}
+            onSubmit={this.handleSubmit}
             serverError={this.state.serverError}
           />
         )

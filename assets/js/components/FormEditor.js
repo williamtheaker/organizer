@@ -5,7 +5,7 @@ import _ from 'lodash'
 import Select from 'react-select'
 import { Form, Text, FormInput, Checkbox } from 'react-form'
 import {csrftoken} from '../Django'
-import { Action, Form as APIForm } from '../API'
+import { Action, Form as ModelForm } from '../Model'
 
 function SignupStateSelect(props) {
   const options = [
@@ -117,9 +117,13 @@ const EditorFields = (props) => (
 export default class FormEditor extends React.Component {
   constructor(props) {
     super(props);
+    const isNew = this.props.match.params.action_id === "new";
+    const formData = isNew ? {} : {id: Number(this.props.match.params.form_id)};
+    const actionData = {id: Number(this.props.match.params.action_id)};
+    this.form = new ModelForm(formData);
+    this.action = new Action(actionData)
     this.state = {
-      form: new APIForm(),
-      loading: true
+      loading: true,
     }
 
     this.doSubmit = this.doSubmit.bind(this);
@@ -130,23 +134,20 @@ export default class FormEditor extends React.Component {
   }
 
   reload() {
-    Action.getByID(this.props.match.params.action_id)
-      .then(a => this.setState({action: a}));
-    if (this.props.match.params.id == "new") {
+    if (this.form.isNew()) {
       this.setState({loading: false});
     } else {
-      APIForm.getByID(this.props.match.params.id)
-        .then(form => {
-          this.setState({form: form, loading: false});
-        });
+      this.setState({loading: true});
+      this.form.fetch({success: () => this.setState({loading: false})});
     }
+    this.action.fetch();
   }
 
   doSubmit(values) {
     const config = {headers: {'X-CSRFToken': csrftoken}};
     if (this.props.match.params.id == 'new') {
       const data = {
-        action: this.state.action.url,
+        action: this.action.url,
         title: values.title,
         //fields: values.fields,
         description: values.description.toString('markdown'),
@@ -171,7 +172,7 @@ export default class FormEditor extends React.Component {
         });
     } else {
       const deletedFields = _.filter(
-        this.state.form.fields,
+        this.form.fields,
         (field) => _.find(
           values.fields, 
           (value) => value.id == field.id
@@ -187,7 +188,7 @@ export default class FormEditor extends React.Component {
           return axios.patch('/api/fields/'+f.id+'/', data, config);
         } else {
           const createData = {
-            form: this.state.form.url,
+            form: this.form.url,
             ...data
           }
           return axios.post('/api/fields/', createData, config);
@@ -199,7 +200,7 @@ export default class FormEditor extends React.Component {
           description: values.description.toString('markdown'),
           title: values.title
         }
-        return axios.patch('/api/forms/'+this.state.form.id+'/', data, config);
+        return axios.patch('/api/forms/'+this.form.id+'/', data, config);
       })()];
       Promise.all(requests)
         .then(() => {
@@ -211,10 +212,10 @@ export default class FormEditor extends React.Component {
   render() {
     if (!this.state.loading) {
       const defaults = {
-        title: this.state.form.title,
-        description: RichTextEditor.createValueFromString(this.state.form.description, 'markdown'),
-        next_state: this.state.form.next_state,
-        fields: _.map(this.state.form.fields, (field) => ({
+        title: this.form.title,
+        description: RichTextEditor.createValueFromString(this.form.description, 'markdown'),
+        next_state: this.form.next_state,
+        fields: _.map(this.form.fields, (field) => ({
           name: field.name,
           control_type: field.control_type,
           id: field.id

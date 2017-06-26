@@ -55,6 +55,13 @@ class ActionSerializer(serializers.HyperlinkedModelSerializer):
     signups = SignupSerializer(many=True, read_only=True)
     fields = FieldSerializer(many=True, read_only=True)
     forms = ActionFormSerializer(many=True, read_only=True)
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            return super(ActionSerializer, self).to_internal_value(data)
+        else:
+            return relations.HyperlinkedRelatedField('action-detail',
+                    queryset=models.Action.objects.all()).to_internal_value(data)
     class Meta:
         model = models.Action
         fields = ('name', 'date', 'id', 'signups', 'forms',
