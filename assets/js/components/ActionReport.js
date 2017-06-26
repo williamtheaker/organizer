@@ -462,6 +462,14 @@ export default class ActionReport extends React.PureComponent {
   }
 
   render() {
+    const formLinks = _.map(this.model.action.forms, f => (
+      <ListItem key={f.cid}>
+        <Link to={`/action/${this.model.action.slug}/${f.id}/`}>
+          <i className="fa fa-link" />
+          {f.title}
+        </Link>
+      </ListItem>
+    ));
     return (
       <div className="action-report">
         <div className="row">
@@ -485,16 +493,11 @@ export default class ActionReport extends React.PureComponent {
                     selected={this.model.action.date}
                     onChange={(date) => this.model.action.save({date: date}, {patch: true})}/>
                 </ListItem>
+                {formLinks}
                 <ListItem>
                   <Link
-                    to={`/action/${this.model.action.slug}/`}>
-                    <i className="fa fa-link" /> Sign up
-                  </Link>
-                </ListItem>
-                <ListItem>
-                  <Link
-                    to={`/action/${this.model.action.slug}/check-in`}>
-                    <i className="fa fa-link" /> Check in
+                    to={`/organize/action/${this.model.action.id}/form/new`}>
+                    Create a new form
                   </Link>
                 </ListItem>
               </List>
