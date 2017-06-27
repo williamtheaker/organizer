@@ -2,7 +2,7 @@ import React from 'react'
 import _ from 'lodash'
 import { Link } from 'react-router-dom'
 import { titles } from '../TitleManager'
-import { ActionCollection } from '../Model'
+import { bindToCollection, ActionCollection } from '../Model'
 import { Card, CardHeader, CardText, Avatar } from 'material-ui'
 import ContentCreate from 'material-ui/svg-icons/content/create'
 
@@ -10,7 +10,8 @@ export default class ActionIndex extends React.Component {
   constructor(props) {
     super(props);
     this.actions = new ActionCollection();
-    this.actions.on('add remove change', () => this.forceUpdate());
+    this.state = {actions: []}
+    bindToCollection(this, this.actions, 'actions');
     this.actions.fetch();
   }
 
@@ -19,8 +20,7 @@ export default class ActionIndex extends React.Component {
   }
 
   render() {
-    console.log('signups', _.map(this.actions.models, f => f.signups));
-    const actionRows = _.map(this.actions.models, action => {
+    const actionRows = _.map(this.state.actions, action => {
       const total = action.signups.length;
       const prospective = action.signups.filter(s => s.state == "prospective").length
       const contacted = action.signups.filter(s => s.state == "contacted").length

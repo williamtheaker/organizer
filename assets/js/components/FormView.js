@@ -1,16 +1,15 @@
 import React from 'react'
-import axios from 'axios'
 import { titles } from '../TitleManager'
 import { Form, Text, NestedForm, FormInput } from 'react-form'
 import PlacesAutocomplete from 'react-places-autocomplete'
 import _ from 'lodash'
 import ReactMarkdown from 'react-markdown'
-import { csrftoken } from '../Django'
 import { Link } from 'react-router-dom'
 import Spinner from './Spinner'
 import moment from 'moment'
 import AddToCalendar from 'react-add-to-calendar'
 import { RaisedButton, Divider, Card, CardHeader, Paper } from 'material-ui'
+import { bindToState, Form as ModelForm, Submission, SubmissionField } from '../Model'
 
 import FormFieldForm from './FormFieldForm'
 
@@ -94,45 +93,46 @@ export const FormInputView = (props) => (
 export default class FormView extends React.PureComponent {
   constructor(props) {
     super(props);
+
+    const hasInline = (typeof INLINE_FORM_DATA != 'undefined');
+    const formData = (hasInline ? INLINE_FORM_DATA : {id: Number(props.match.params.id)});
+    if (hasInline) {
+      Raven.captureBreadcrumb({
+        message: 'Form loaded from sideload cache',
+        category: 'action',
+        data: formData,
+      });
+    }
+    this.form = new ModelForm(formData);
+    console.log('new form', this.form);
+
+    bindToState(this, this.form, {
+      title: 'title',
+      description: 'description',
+      fields: 'fields',
+      action: 'action'
+    });
+
     this.state = {
-      form: {
-        id: 0,
-        title: '',
-        description: '',
-        fields: []
-      },
       submitted: false,
-      loading: true,
-      serverError: undefined
+      loading: !hasInline,
+      serverError: undefined,
+      action: this.form.action
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
-    this.reload();
-  }
-
-  reload() {
-    this.setState({form: {id:0, title: '', description: '', fields: []}, submitted: false, loading: true});
-    if (typeof INLINE_FORM_DATA != "undefined") {
-      Raven.captureBreadcrumb({
-        message: 'Form loaded from cache',
-        category: 'action',
-        data: INLINE_FORM_DATA
-      });
-      this.setState({form: INLINE_FORM_DATA, loading: false});
-      //titles.setTitle(INLINE_FORM_DATA.action.name, '');
-    } else {
-      axios.get('/api/forms/'+this.props.match.params.id+'/')
-        .then((results) => {
-          Raven.captureBreadcrumb({
-            message: 'Form loaded',
-            category: 'action',
-            data: results.data
-          });
-          this.setState({form: results.data, loading: false});
-          //titles.setTitle(results.data.action.name, '');
+    const hasInline = (typeof INLINE_FORM_DATA != 'undefined');
+    if (!hasInline) {
+      this.form.fetch({success: () => {
+        Raven.captureBreadcrumb({
+          message: 'Form loaded via http',
+          category: 'action',
+          data: this.form
         });
+        this.setState({loading: false});
+      }});
     }
   }
 
@@ -142,47 +142,46 @@ export default class FormView extends React.PureComponent {
       category: 'action',
       data: values
     });
-    var data = {
+    const fieldValues = _.map(_.keys(values.fields), fieldID => (
+      new SubmissionField({id: fieldID, value: values.fields[fieldID]})
+    ));
+    const submissionData = {
       name: values.name,
       email: values.email,
-      address: values.address
-    };
-    for(var fieldID in values.fields) {
-      if (fieldID) {
-        data['input_'+fieldID] = values.fields[fieldID];
-      }
+      address: values.address,
+      fields: fieldValues,
+      form: this.form
     }
-    axios.post('/api/forms/'+this.props.match.params.id+'/submit_response/',
-      data, {headers: {'X-CSRFToken': csrftoken}})
-      .then((r) => {
-        this.setState({submitted: true});
-      })
-      .catch((error) => {
-        if (error.response.status == 400) {
-          var errors = {};
-          _.each(
-            error.response.data.errors,
-            (value, key) => {
-               errors[key] = value.join(' ');
-            }
-          );
-          theForm.setAllTouched(true, {errors: errors});
-        } else {
-          this.setState({serverError: "Recieved "+error.response.status+" from server. Try again."});
-          Raven.captureException(error);
-        }
-      });
+    const submission = new Submission(submissionData);
+    this.setState({serverError: ''});
+    submission.save({}, {success: () => {
+      this.setState({submitted: true});
+    }, error: (model, response) => {
+      if (response.statusCode == 400) {
+        var errors = {};
+        _.each(
+          response.body.errors,
+          (value, key) => {
+             errors[key] = value.join(' ');
+          }
+        );
+        theForm.setAllTouched(true, {errors: errors});
+      } else {
+        this.setState({serverError: "Recieved "+response.statusCode+" from server. Try again."});
+        Raven.captureException(response);
+      }
+    }});
   }
 
   render() {
     if (this.state.loading) {
       return <Spinner />
     } else {
-      const asMoment = moment(this.state.form.action.date);
+      const asMoment = moment(this.state.action.date);
       const asEvent = {
-        title: this.state.form.action.name,
+        title: this.state.action.name,
         location: '',
-        description:this.state.form.description,
+        description:this.state.description,
         startTime: asMoment.format(),
         endTime: asMoment.add('2 hour').format()
       };
@@ -191,13 +190,13 @@ export default class FormView extends React.PureComponent {
           <Thanks
             asMoment={asMoment}
             asEvent={asEvent}
-            form={this.state.form}
-            onSubmitAnother={this.reload.bind(this)} />
+            form={this.form}
+            onSubmitAnother={() => this.setState({submitted: false})} />
         )
       } else {
         return (
           <FormInputView
-            form={this.state.form}
+            form={this.form}
             dateAsMoment={asMoment}
             eventDescription={asEvent}
             onSubmit={this.handleSubmit}

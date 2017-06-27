@@ -72,11 +72,11 @@ class ViewFormSerializer(serializers.HyperlinkedModelSerializer):
     action = serializers.SerializerMethodField()
 
     def get_action(self, obj):
-        return {'name': obj.action.name}
+        return {'name': obj.action.name, 'date': unicode(obj.action.date)}
 
     class Meta:
         model = models.Form
-        fields = ('fields', 'action', 'title', 'description', 'url')
+        fields = ('fields', 'action', 'title', 'description', 'url', 'id')
 
 class FormSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(required=False, many=True)

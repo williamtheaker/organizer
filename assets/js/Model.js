@@ -1,6 +1,7 @@
 import React from 'react'
 import Events from 'ampersand-events'
 import AmpersandModel from 'ampersand-model'
+import AmpersandCollection from 'ampersand-collection'
 import AmpersandRestCollection from 'ampersand-rest-collection'
 import _ from 'lodash'
 import moment from 'moment'
@@ -136,6 +137,63 @@ export const FormCollection = DjangoCollection.extend({
   url: '/api/forms/',
   model: Form
 });
+
+export const SubmissionField = AmpersandModel.extend({
+  props: {
+    id: 'number',
+    value: 'string'
+  }
+});
+
+export const SubmissionFieldCollection = AmpersandCollection.extend({
+  model: SubmissionField
+});
+
+export const Submission = DjangoModel.extend({
+  props: {
+    name: 'string',
+    email: 'string',
+    address: 'string',
+    form: Form,
+  },
+  collections: {
+    fields: SubmissionFieldCollection
+  },
+  toJSON() {
+    const serialized = this.serialize('props');
+    var fieldValues = {}
+    _.each(this.fields, field => {
+      fieldValues['input_'+field.id] = field.value;
+    })
+    return {...serialized, ...fieldValues};
+  },
+  derived: {
+    url: {
+      deps: ['*'],
+      fn() {
+        return '/api/forms/'+this.form.id+'/submit_response/'
+      }
+    }
+  }
+});
+
+export function bindToState(self, state, propMap) {
+  _.each(_.keys(propMap), propName => {
+    state.on('change:'+propName, () => {
+      var nextState = {};
+      nextState[propName] = state[propName];
+      self.setState(nextState);
+    })
+  })
+}
+
+export function bindToCollection(self, collection, key) {
+  collection.on('add remove change', () => {
+    var nextState = {};
+    nextState[key] = collection.models;
+    self.setState(nextState);
+  });
+}
 
 export function withState(Component) {
   return class StateBinding extends React.Component {

@@ -3,8 +3,6 @@ import { titles } from './../TitleManager'
 import { Route, Link, Switch } from 'react-router-dom'
 import MenuNavLink from './MenuNavLink'
 
-import { Activist } from '../API'
-
 import ActionReport from './ActionReport'
 import FormEditor from './FormEditor'
 import ActionIndex from './ActionIndex'
