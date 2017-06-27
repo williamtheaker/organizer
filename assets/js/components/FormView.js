@@ -29,40 +29,98 @@ export const Thanks = (props) => (
       <p>Your response has been recorded.</p>
       <p><a onClick={() => {props.onSubmitAnother()}}>Submit another</a></p>
       <div className="name">{props.form.action.name}</div>
-      <div className="date">{props.asMoment.format('MMMM Do YYYY, h:mm:ss a')}</div>
+      <div className="date">{props.form.action.date.format('MMMM Do YYYY, h:mm:ss a')}</div>
       <AddToCalendar event={props.asEvent}/>
-      <div className="until">{props.asMoment.fromNow()}</div>
+      <div className="until">{props.form.action.date.fromNow()}</div>
     </div>
   </div>
 );
 
-export const SignupForm = (props) => (
-  <form method="post" onSubmit={props.submitForm}>
-    <label>Email <span className="required">*</span><Text type='text' field='email' /></label>
-    <label>Name <span className="required">*</span><Text type='text' field='name' /></label>
-    <label>
-      Address
-      <FormInput field='address'>
-        {({ setValue, getValue, setTouched }) => {
-          const inputProps = {
-            value: getValue(),
-            onChange: val => setValue(val),
-            onBlur: () => setTouched()
-          }
-          return (
-            <PlacesAutocomplete inputProps={inputProps} />
-          )
-        }}
-      </FormInput>
-    </label>
-    <NestedForm field='fields'>
-      <FormFieldForm fields={props.fields} />
-    </NestedForm>
-    <RaisedButton label="Submit" fullWidth={true} primary={true} labelPosition="before" containerElement="label">
-      <button type="submit" />
-    </RaisedButton>
-  </form>
+export const PlacesAutocompleteField = (props) => (
+  <FormInput {...props}>
+    {({ setValue, getValue, setTouched }) => {
+      const inputProps = {
+        value: getValue(),
+        onChange: val => setValue(val),
+        onBlur: () => setTouched()
+      }
+      return (
+        <PlacesAutocomplete inputProps={inputProps} />
+      )
+    }}
+  </FormInput>
 )
+
+export class SignupForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      serverError: ''
+    }
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleSubmit(values, state, props, theForm) {
+    Raven.captureBreadcrumb({
+      message: "Form submitted",
+      category: 'action',
+      data: values
+    });
+    const fieldValues = _.map(_.keys(values.fields), fieldID => (
+      new SubmissionField({id: fieldID, value: values.fields[fieldID]})
+    ));
+    const submissionData = {
+      name: values.name,
+      email: values.email,
+      address: values.address,
+      fields: fieldValues,
+      form: this.props.form
+    }
+    const submission = new Submission(submissionData);
+    this.setState({serverError: ''});
+    submission.save({}, {success: () => {
+      this.props.onSubmit();
+    }, error: (model, response) => {
+      if (response.statusCode == 400) {
+        var errors = {};
+        _.each(
+          response.body.errors,
+          (value, key) => {
+             errors[key] = value.join(' ');
+          }
+        );
+        theForm.setAllTouched(true, {errors: errors});
+      } else {
+        this.setState({serverError: "Recieved "+response.statusCode+" from server. Try again."});
+        Raven.captureException(response);
+      }
+    }});
+  }
+
+  render() {
+    return (
+      <Form onSubmit={this.handleSubmit}>
+        {({submitForm }) => (
+          <form method="post" onSubmit={submitForm}>
+            <p className="error">{this.state.serverError}</p>
+            <label>Email <span className="required">*</span><Text type='text' field='email' /></label>
+            <label>Name <span className="required">*</span><Text type='text' field='name' /></label>
+            <label>
+              Address
+              <PlacesAutocompleteField field="address" />
+            </label>
+            <NestedForm field='fields'>
+              <FormFieldForm fields={this.props.fields} />
+            </NestedForm>
+            <RaisedButton label="Submit" fullWidth={true} primary={true} labelPosition="before" containerElement="label">
+              <button type="submit" />
+            </RaisedButton>
+          </form>
+        )}
+      </Form>
+    )
+  }
+}
 
 export const FormInputView = (props) => (
   <Paper zDepth={2} className="expanded row the-form">
@@ -72,20 +130,13 @@ export const FormInputView = (props) => (
         <ReactMarkdown source={props.form.description} />
       </div>
       <Divider />
-      <p className="error">{props.serverError}</p>
-      <Form onSubmit={props.onSubmit} >
-        {({ submitForm, setAllTouched}) => {
-          return (
-            <SignupForm submitForm={submitForm} fields={props.form.fields} />
-          )
-        }}
-      </Form>
+      <SignupForm onSubmit={props.onSubmit} form={props.form} fields={props.form.fields} />
     </Card>
     <Paper zDepth={2} className="medium-3 columns meta">
       <div className="name">{props.form.action.name}</div>
-      <div className="date">{props.dateAsMoment.format('MMMM Do YYYY, h:mm:ss a')}</div>
+      <div className="date">{props.form.action.date.format('MMMM Do YYYY, h:mm:ss a')}</div>
       <AddToCalendar event={props.eventDescription}/>
-      <div className="until">{props.dateAsMoment.fromNow()}</div>
+      <div className="until">{props.form.action.date.fromNow()}</div>
     </Paper>
   </Paper>
 )
@@ -116,10 +167,8 @@ export default class FormView extends React.PureComponent {
     this.state = {
       submitted: false,
       loading: !hasInline,
-      serverError: undefined,
       action: this.form.action
     };
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -136,59 +185,20 @@ export default class FormView extends React.PureComponent {
     }
   }
 
-  handleSubmit(values, state, props, theForm) {
-    Raven.captureBreadcrumb({
-      message: "Form submitted",
-      category: 'action',
-      data: values
-    });
-    const fieldValues = _.map(_.keys(values.fields), fieldID => (
-      new SubmissionField({id: fieldID, value: values.fields[fieldID]})
-    ));
-    const submissionData = {
-      name: values.name,
-      email: values.email,
-      address: values.address,
-      fields: fieldValues,
-      form: this.form
-    }
-    const submission = new Submission(submissionData);
-    this.setState({serverError: ''});
-    submission.save({}, {success: () => {
-      this.setState({submitted: true});
-    }, error: (model, response) => {
-      if (response.statusCode == 400) {
-        var errors = {};
-        _.each(
-          response.body.errors,
-          (value, key) => {
-             errors[key] = value.join(' ');
-          }
-        );
-        theForm.setAllTouched(true, {errors: errors});
-      } else {
-        this.setState({serverError: "Recieved "+response.statusCode+" from server. Try again."});
-        Raven.captureException(response);
-      }
-    }});
-  }
-
   render() {
     if (this.state.loading) {
       return <Spinner />
     } else {
-      const asMoment = moment(this.state.action.date);
       const asEvent = {
         title: this.state.action.name,
         location: '',
         description:this.state.description,
-        startTime: asMoment.format(),
-        endTime: asMoment.add('2 hour').format()
+        startTime: this.state.action.date.format(),
+        endTime: this.state.action.date.add('2 hour').format()
       };
       if (this.state.submitted) {
         return (
           <Thanks
-            asMoment={asMoment}
             asEvent={asEvent}
             form={this.form}
             onSubmitAnother={() => this.setState({submitted: false})} />
@@ -197,10 +207,8 @@ export default class FormView extends React.PureComponent {
         return (
           <FormInputView
             form={this.form}
-            dateAsMoment={asMoment}
             eventDescription={asEvent}
-            onSubmit={this.handleSubmit}
-            serverError={this.state.serverError}
+            onSubmit={() => this.setState({submitted: true})}
           />
         )
       }
