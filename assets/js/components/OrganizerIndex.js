@@ -11,7 +11,7 @@ import HTML5Backend from 'react-dnd-html5-backend'
 import { DragDropContext } from 'react-dnd'
 
 import { FlatButton, IconMenu, MenuItem, Avatar, AppBar, Paper } from 'material-ui'
-import gravatarUrl from 'gravatar-url'
+//import gravatarUrl from 'gravatar-url'
 
 const LoginMenu = withCurrentUser((props) =>  props.logged_in ? (
   <IconMenu

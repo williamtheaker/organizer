@@ -1,6 +1,9 @@
+import React from 'react'
 import fetchMock from 'fetch-mock'
-import { Form, Submission } from './Model'
+import { mount, shallow } from 'enzyme'
+import { Form, Submission, bindToState, withState } from './Model'
 import jsc from 'jsverify'
+import AmpersandModel from 'ampersand-model'
 
 describe('Submission saving', () => {
   function rejectErrors(submission) {
@@ -76,4 +79,83 @@ describe('Submission saving', () => {
     const submission = new Submission();
     return expect(() => submission.save()).toThrow(TypeError);
   });
+})
+
+describe('bindToState', () => {
+  it('should update state on model change', () => {
+    const Model = AmpersandModel.extend({
+      props: {
+        testProp: 'string'
+      }
+    })
+
+    const modelInstance = new Model();
+
+    class Component extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {}
+        bindToState(this, props.model, {
+          testProp: 'testProp'
+        });
+      }
+
+      render() { return null }
+    }
+
+    const component = shallow(<Component model={modelInstance} />);
+    expect(component.state()).toEqual({})
+
+    modelInstance.set({testProp: 'value'})
+    expect(component.state()).toEqual({testProp: 'value'})
+
+    modelInstance.set({testProp: 'another value'})
+    expect(component.state()).toEqual({testProp: 'another value'})
+  })
+})
+
+describe('withState', () => {
+  it('should render on prop change', () => {
+    jest.useFakeTimers();
+    const Model = AmpersandModel.extend({
+      props: {
+        testProp: 'string'
+      }
+    })
+
+    const modelInstance = new Model();
+    const renderSpy = jest.fn(() => <p />);
+
+    class Component extends React.Component {
+      render() {
+        return renderSpy();
+      }
+    }
+
+    const Wrapped = withState(Component)
+    const component = mount(<Wrapped model={modelInstance}/>)
+
+    expect(renderSpy).toHaveBeenCalledTimes(1);
+
+    modelInstance.set({testProp: 'value'})
+    jest.runAllTimers();
+    expect(renderSpy).toHaveBeenCalledTimes(2);
+
+    modelInstance.set({testProp: 'another value'})
+    jest.runAllTimers();
+    expect(renderSpy).toHaveBeenCalledTimes(3);
+
+    const secondInstance = new Model();
+    component.setProps({model: secondInstance})
+    jest.runAllTimers();
+    expect(renderSpy).toHaveBeenCalledTimes(4);
+
+    secondInstance.set({testProp: 'value'})
+    jest.runAllTimers();
+    expect(renderSpy).toHaveBeenCalledTimes(5);
+
+    component.unmount();
+    modelInstance.set({testProp: 'yet another value'})
+    expect(renderSpy).toHaveBeenCalledTimes(5);
+  })
 })

@@ -134,16 +134,16 @@ export default class FormView extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    const hasInline = (typeof INLINE_FORM_DATA != 'undefined');
-    const formData = (hasInline ? INLINE_FORM_DATA : {id: Number(props.match.params.id)});
-    if (hasInline) {
-      Raven.captureBreadcrumb({
-        message: 'Form loaded from sideload cache',
-        category: 'action',
-        data: formData,
-      });
-    }
+    const formData = {id: Number(props.match.params.id)};
     this.form = new ModelForm(formData);
+    this.form.sideloadOrFetch({success: () => {
+      Raven.captureBreadcrumb({
+        message: 'Form loaded via http',
+        category: 'action',
+        data: this.form
+      });
+      this.setState({loading: false});
+    }});
 
     bindToState(this, this.form, {
       title: 'title',
@@ -154,23 +154,9 @@ export default class FormView extends React.PureComponent {
 
     this.state = {
       submitted: false,
-      loading: !hasInline,
+      loading: !this.form.sideloaded,
       action: this.form.action
     };
-  }
-
-  componentDidMount() {
-    const hasInline = (typeof INLINE_FORM_DATA != 'undefined');
-    if (!hasInline) {
-      this.form.fetch({success: () => {
-        Raven.captureBreadcrumb({
-          message: 'Form loaded via http',
-          category: 'action',
-          data: this.form
-        });
-        this.setState({loading: false});
-      }});
-    }
   }
 
   render() {

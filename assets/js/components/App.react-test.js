@@ -1,12 +1,11 @@
 import React from 'react'
 import App from './App'
-import renderer from 'react-test-renderer'
+import { mount } from 'enzyme'
 
 
 test('Smoke test', () => {
   global.SLACK_LOGIN_URL = "";
-  const component = renderer.create(<App />);
+  const component = mount(<App />);
 
-  let tree = component.toJSON();
-  expect(tree).toMatchSnapshot();
+  expect(component.html()).toMatchSnapshot();
 })

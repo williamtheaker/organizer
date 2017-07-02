@@ -79,8 +79,26 @@ export const Form = DjangoModel.extend({
     next_state: 'string',
     title: 'string'
   },
+  session: {
+    sideloaded: 'boolean'
+  },
   collections: {
     //fields: FieldCollection
+  },
+  sideloadOrFetch() {
+    const hasInline = (typeof INLINE_FORM_DATA != 'undefined');
+    if (hasInline && INLINE_FORM_DATA.id == this.id) {
+      Raven.captureBreadcrumb({
+        message: 'Form loaded from sideload cache',
+        category: 'action',
+        data: INLINE_FORM_DATA,
+      });
+      this.set(INLINE_FORM_DATA)
+      this.sideloaded = true;
+    } else {
+      this.sideloaded = false;
+      return DjangoModel.prototype.fetch.apply(this, arguments)
+    }
   },
   children: {
     action: Action
