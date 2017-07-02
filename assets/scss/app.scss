@@ -5,14 +5,13 @@ $secondary-color: rgba(3,44,54,.9);
 
 @include foundation-global-styles;
 @include foundation-grid;
-@include foundation-typography;
-@include foundation-button;
-@include foundation-card;
-@include foundation-menu;
-@include foundation-table;
-@include foundation-top-bar;
 
 @import '~react-datepicker/dist/react-datepicker-cssmodules.css';
+
+.activist-card-wrap {
+  width: 20rem;
+  margin: 0.5rem;
+}
 
 .ReactModalPortal {
   .ReactModal__Overlay {
@@ -20,12 +19,51 @@ $secondary-color: rgba(3,44,54,.9);
   }
 }
 
+.organizer-app-bar {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  a {
+    color: #fff;
+    text-decoration: none;
+  }
+}
+
+.the-app {
+  background-color: #fff;
+  margin-top: 4rem;
+}
+
 .action-list {
+  display: flex;
+  flex-flow: row wrap;
+  width: 100%;
+  .card {
+    margin: 0.5rem;
+    @include breakpoint(small only) {
+      flex: 1 0 100%;
+    }
+    @include breakpoint(medium) {
+      flex: 1 0 35%;
+    }
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .recent {
+    display: flex;
+    flex-flow: row;
+    overflow: hidden;
+    width: 100%;
+    padding: 0.5rem;
+  }
+
   .bottom-bar {
     width: 100%;
     display: flex;
     div {
-      height: 5px;
+      height: 1.5rem;
 
       &.prospective {
         background-color: #faa;

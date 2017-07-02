@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Route } from 'react-router-dom'
 import { titles } from '../TitleManager'
 
 import Footer from './Footer'
-import Header from './Header'
 import FormView from './FormView'
 import { asyncComponent } from 'react-async-component'
 import ThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -33,7 +32,6 @@ export default class App extends React.PureComponent {
       <ThemeProvider>
         <Router>
           <div>
-            <Header title={this.state.title} subtitle={this.state.subtitle} />
             <Route exact path="/crm/f/:id" component={FormView}/>
             <Route path="/action/:action/:id" component={FormView}/>
             <Route path="/organize" component={LazyOrganizerIndex} />

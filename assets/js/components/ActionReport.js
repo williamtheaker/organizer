@@ -9,7 +9,7 @@ import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
 import Switch from 'rc-switch'
 import { Action, } from '../API'
-import { DropTarget } from 'react-dnd'
+import { DragDropContext, DropTarget } from 'react-dnd'
 import AmpersandState from 'ampersand-state'
 import { bindToState, withState, FormCollection, ActivistCollection, Action as AmpersandAction, Signup, SignupCollection } from '../Model'
 import { CSSTransitionGroup } from 'react-transition-group'
@@ -19,6 +19,7 @@ import Spinner from './Spinner'
 import Modal from 'react-modal'
 import DatePicker from 'react-datepicker'
 import { TextField, RaisedButton, ListItem, List, Avatar, Divider, Paper, Card, CardHeader, CardText } from 'material-ui'
+import HTML5Backend from 'react-dnd-html5-backend'
 
 class Collapsable extends React.Component {
   constructor(props) {
@@ -269,12 +270,12 @@ class ActivistConversionUIBase extends React.Component {
     }
     return (
       <div className="conversion-ui">
-        <Card className="suggestions">
-          <CardHeader title="Suggested Activists" />
+        <div className="suggestions">
+          <h2>Suggestions</h2>
           <div className="card-list">
             {suggestions}
           </div>
-        </Card>
+        </div>
         <p />
         <Divider />
         <p />
@@ -289,7 +290,7 @@ class ActivistConversionUIBase extends React.Component {
   }
 }
 
-const ActivistConversionUI = withState(ActivistConversionUIBase);
+const ActivistConversionUI = DragDropContext(HTML5Backend)(withState(ActivistConversionUIBase));
 
 class ActivistAutocomplete extends React.PureComponent {
   constructor(props) {

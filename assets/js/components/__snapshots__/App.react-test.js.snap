@@ -2,20 +2,6 @@
 
 exports[`Smoke test 1`] = `
 <div>
-  <header
-    className="row expanded"
-  >
-    <div
-      className="small-12 columns logo logo-full"
-    >
-      <a
-        href="/"
-        onClick={[Function]}
-      >
-        East Bay Forward
-      </a>
-    </div>
-  </header>
   <footer>
     <div
       className="row"

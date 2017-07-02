@@ -7,6 +7,10 @@ import 'rc-switch/assets/index.css'
 import { AppContainer } from 'react-hot-loader'
 import App from './components/App'
 
+import injectTapEventPlugin from 'react-tap-event-plugin';
+
+injectTapEventPlugin();
+
 const render = (Component) => {
   ReactDOM.render(
     <AppContainer><Component/></AppContainer>,

@@ -7,7 +7,7 @@ import { Card, CardHeader, Avatar } from 'material-ui'
 
 class ActivistCardBase extends React.Component {
   render() {
-    const classes = "card " +
+    const classes = "activist-card " +
                     (this.props.dragging ? "dragging " : "");
     const draggable = this.props.connectDragSource(
       <div>
@@ -20,7 +20,7 @@ class ActivistCardBase extends React.Component {
       </div>
     )
     return (
-      <div className="card-wrap">
+      <div className="activist-card-wrap">
         {draggable}
       </div>
     )

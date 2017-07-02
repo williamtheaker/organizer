@@ -10,6 +10,7 @@ import moment from 'moment'
 import AddToCalendar from 'react-add-to-calendar'
 import { RaisedButton, Divider, Card, CardHeader, Paper } from 'material-ui'
 import { bindToState, Form as ModelForm, Submission, SubmissionField } from '../Model'
+import Header from './Header'
 
 import FormFieldForm from './FormFieldForm'
 
@@ -70,31 +71,19 @@ export class SignupForm extends React.Component {
       new SubmissionField({id: fieldID, value: values.fields[fieldID]})
     ));
     const submissionData = {
-      name: values.name,
-      email: values.email,
-      address: values.address,
+      ...values,
       fields: fieldValues,
       form: this.props.form
     }
     const submission = new Submission(submissionData);
     this.setState({serverError: ''});
-    submission.save({}, {success: () => {
-      this.props.onSubmit();
-    }, error: (model, response) => {
-      if (response.statusCode == 400) {
-        var errors = {};
-        _.each(
-          response.body.errors,
-          (value, key) => {
-             errors[key] = value.join(' ');
-          }
-        );
-        theForm.setAllTouched(true, {errors: errors});
-      } else {
-        this.setState({serverError: "Recieved "+response.statusCode+" from server. Try again."});
-        Raven.captureException(response);
-      }
-    }});
+    submission.save()
+      .then(this.props.onSubmit)
+      .catch((err) => {
+        const massagedErrors = _.mapValues(submission.errors, v => v.join(' '))
+        theForm.setAllTouched(true, {errors: massagedErrors});
+        this.setState({serverError: "Recieved "+err.response.status+" from server. Try again."});
+    })
   }
 
   render() {
@@ -104,7 +93,7 @@ export class SignupForm extends React.Component {
           <form method="post" onSubmit={submitForm}>
             <p className="error">{this.state.serverError}</p>
             <label>Email <span className="required">*</span><Text type='text' field='email' /></label>
-            <label>Name <span className="required">*</span><Text type='text' field='name' /></label>
+            <label>Name <Text type='text' field='name' /></label>
             <label>
               Address
               <PlacesAutocompleteField field="address" />
@@ -155,7 +144,6 @@ export default class FormView extends React.PureComponent {
       });
     }
     this.form = new ModelForm(formData);
-    console.log('new form', this.form);
 
     bindToState(this, this.form, {
       title: 'title',
@@ -205,11 +193,14 @@ export default class FormView extends React.PureComponent {
         )
       } else {
         return (
-          <FormInputView
-            form={this.form}
-            eventDescription={asEvent}
-            onSubmit={() => this.setState({submitted: true})}
-          />
+          <div>
+            <Header />
+            <FormInputView
+              form={this.form}
+              eventDescription={asEvent}
+              onSubmit={() => this.setState({submitted: true})}
+            />
+          </div>
         )
       }
     }
