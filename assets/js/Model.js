@@ -2,56 +2,10 @@ import React from 'react'
 import Events from 'ampersand-events'
 import AmpersandModel from 'ampersand-model'
 import AmpersandCollection from 'ampersand-collection'
-import AmpersandRestCollection from 'ampersand-rest-collection'
 import _ from 'lodash'
 import moment from 'moment'
 import slug from 'slug'
-
-import { csrftoken } from './Django'
-
-const DjangoConfig = () => {
-  return {
-    headers: {
-      'X-CSRFToken': csrftoken
-    }
-  }
-}
-
-export const DjangoModel = AmpersandModel.extend({
-  ajaxConfig: DjangoConfig,
-  props: {
-    id: 'number'
-  },
-  dataTypes: {
-    moment: {
-      set(v) {
-        return {type: 'moment', val: moment(v)};
-      },
-      default() {
-        return moment();
-      }
-    }
-  },
-  derived: {
-    url: {
-      deps: ['id'],
-      fn() {
-        return this.getId() ? (this.urlRoot + this.getId() + '/') : this.urlRoot;
-      }
-    }
-  }
-})
-
-export const DjangoCollection = AmpersandRestCollection.extend({
-  ajaxConfig: DjangoConfig,
-  parse(response) {
-    if (response.results) {
-      return response.results;
-    } else {
-      return response;
-    }
-  }
-})
+import { DjangoModel, DjangoCollection } from './ModelBase'
 
 export const Activist = DjangoModel.extend({
   urlRoot: '/api/activists/',
@@ -154,10 +108,38 @@ export const Submission = DjangoModel.extend({
     name: 'string',
     email: 'string',
     address: 'string',
-    form: Form,
+    form: ['object', true, () => new Form()]
+  },
+  session: {
+    errors: ['object', true, () => {}]
   },
   collections: {
     fields: SubmissionFieldCollection
+  },
+  sync(method, model, options) {
+    if (this.form.isNew()) {
+      throw new TypeError("form property must have id");
+    }
+    function parseErrors(response) {
+      if (response.status == 400) {
+        return response.json()
+          .then((body) => {
+            this.errors = body.errors || {};
+            let err = new Error();
+            err.response = response;
+            return Promise.reject(err);
+          })
+      } else if (!response.ok) {
+        let err = new Error();
+        err.response = response;
+        return Promise.reject(err);
+      } else {
+        this.errors = {};
+      }
+      return response;
+    }
+    return DjangoModel.prototype.sync(method, model, options)
+      .then(parseErrors.bind(this));
   },
   toJSON() {
     const serialized = this.serialize('props');

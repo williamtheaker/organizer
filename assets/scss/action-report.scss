@@ -70,14 +70,15 @@
       width: 100%;
       display: flex;
       flex-flow: row wrap;
+
+      .activist-card-wrap {
+        flex: 1 0 20%;
+      }
     }
 
-    .card-wrap {
-      width: 13rem;
-      margin-left: 1rem;
-    }
-
-    background-color: #ddd;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    background-color: #eee;
   }
 
   .column-list {

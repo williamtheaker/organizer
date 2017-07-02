@@ -3,10 +3,14 @@ import _ from 'lodash'
 import { Link } from 'react-router-dom'
 import { titles } from '../TitleManager'
 import { bindToCollection, ActionCollection } from '../Model'
-import { Card, CardHeader, CardText, Avatar } from 'material-ui'
+import { RaisedButton, CardActions, Divider, Card, CardHeader, CardText, Avatar } from 'material-ui'
+import { DragDropContext } from 'react-dnd'
+import HTML5Backend from 'react-dnd-html5-backend'
 import ContentCreate from 'material-ui/svg-icons/content/create'
+import TextTruncate from 'react-text-truncate'
+import ActivistCard from './ActivistCard'
 
-export default class ActionIndex extends React.Component {
+export class ActionIndexBase extends React.Component {
   constructor(props) {
     super(props);
     this.actions = new ActionCollection();
@@ -39,23 +43,43 @@ export default class ActionIndex extends React.Component {
           <div style={{width: toPct(cancelled)}} className="cancelled" />
         </div>
       )
+      const description = (action.forms.length > 0) ? action.forms[0].description : "No description";
+      const recentSignups = _.map(_.slice(action.signups.models, 0, 5), signup => (
+        <ActivistCard key={signup.cid} activist={signup.activist} />
+      ));
       return (
-        <Card style={{margin: '1rem'}} key={action.cid}>
-          <Link to={`/organize/action/${action.id}`}>
-            <CardHeader subtitle={action.date.fromNow()} title={action.name} avatar={<Avatar>{action.signups.models.length}</Avatar>} />
-            <CardText>
+        <Card className="card" key={action.cid} >
+            <CardHeader
+              actAsExpander={true}
+              showExpandableButton={true}
+              subtitle={action.date.fromNow()}
+              title={action.name}
+              avatar={<Avatar>{action.signups.models.length}</Avatar>} />
+            <CardText expandable={true}>
+              <h2>Recent Signups</h2>
+              <div className="recent">
+                {recentSignups}
+              </div>
+              <p />
+              <Divider />
+              <p />
+              <TextTruncate line={4} text={description} />
             </CardText>
+            <CardActions>
+              <Link to={`/organize/action/${action.id}`}>
+                <RaisedButton primary={true} label="Open" />
+              </Link>
+            </CardActions>
             {progressBar}
-          </Link>
         </Card>
       )
     })
     const addAction = (
-      <Card style={{margin: '1rem'}}>
+      <Card className="card">
         <Link to={`/organize/action/new`}>
           <CardHeader avatar={<Avatar icon={<ContentCreate />}/>}title="Create new action" />
           <CardText>
-            Create a new action, get signups, change the game.
+            Start a new action, get signups.
           </CardText>
         </Link>
       </Card>
@@ -71,3 +95,6 @@ export default class ActionIndex extends React.Component {
     )
   }
 }
+
+const ActionIndex = DragDropContext(HTML5Backend)(ActionIndexBase);
+export default ActionIndex;

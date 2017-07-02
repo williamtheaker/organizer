@@ -1,86 +1,56 @@
 import React from 'react'
-import { titles } from './../TitleManager'
 import { Route, Link, Switch } from 'react-router-dom'
-import MenuNavLink from './MenuNavLink'
 
 import ActionReport from './ActionReport'
 import FormEditor from './FormEditor'
 import ActionIndex from './ActionIndex'
+import AppIndex from './AppIndex'
 
 import { users, withCurrentUser } from '../UserManager'
 import HTML5Backend from 'react-dnd-html5-backend'
 import { DragDropContext } from 'react-dnd'
 
-import { Paper } from 'material-ui'
+import { FlatButton, IconMenu, MenuItem, Avatar, AppBar, Paper } from 'material-ui'
+import gravatarUrl from 'gravatar-url'
 
-class OrganizerIndexBase extends React.Component {
-  componentDidMount() {
-    if (this.props.logged_in) {
-      titles.setTitle("EBF Organizer", "");
-    } else {
-      titles.setTitle("EBF Organizer", "Login");
-    }
-  }
+const LoginMenu = withCurrentUser((props) =>  props.logged_in ? (
+  <IconMenu
+    iconButtonElement={<FlatButton><Avatar src={gravatarUrl(props.current_user.email)}/></FlatButton>} >
+    <MenuItem onClick={() => users.logout()}>Logout</MenuItem>
+  </IconMenu>
+) : null)
 
-  doLogout() {
-    users.logout();
-  }
+const OrganizerAppBar = (props) => (
+  <AppBar
+    title={<Link to="/organize">Organizer</Link>}
+    iconElementLeft={<LoginMenu />}
+    className="organizer-app-bar"
+  />
+)
 
-  componentWillReceiveProps(nextProps) {
-    if (!nextProps.logged_in) {
-      titles.setTitle("EBF Organizer", "Login");
-    }
-  }
-
-  render() {
-    if (this.props.logged_in) {
-      return (
-        <div>
-          <Paper className="row">
-            <div className="small-12 columns">
-                <ul className="menu">
-                  <MenuNavLink to={`${this.props.match.url}`} exact><i className="fa fa-home"></i></MenuNavLink>
-                  <li className="menu-text">
-                    Hi, {this.props.current_user.email}!
-                  </li>
-                  <li><a onClick={this.doLogout}>Log Out</a></li>
-                </ul>
-            </div>
-          </Paper>
-          <p />
-          <Paper className="row">
-            <div className="small-12 columns">
-              <Switch>
-                <Route exact path={`${this.props.match.url}/action`} component={ActionIndex}/>
-                <Route path={`${this.props.match.url}/action/:action_id/form/:id`} component={FormEditor}/>
-                <Route path={`${this.props.match.url}/action/:id`} component={ActionReport}/>
-                <Route component={ActionIndex}/>
-              </Switch>
-            </div>
-          </Paper>
-        </div>
-      );
-    } else {
-      return (
-        <div className="row organizer-index">
-          <div className="small-12 columns signin">
-            <h1>East Bay Forward Organizer</h1>
-            <a href={SLACK_LOGIN_URL}>
-              <img
-                alt="Sign in with Slack"
-                height="40"
-                width="172"
-                src="https://platform.slack-edge.com/img/sign_in_with_slack.png"
-                srcSet="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x"
-              />
-            </a>
-            <p>Please sign in with East Bay Forward Slack to continue</p>
+const OrganizerIndexBase = (props) => {
+  if (props.logged_in) {
+    return (
+      <div>
+        <OrganizerAppBar />
+        <div className="row the-app">
+          <div className="small-12 columns">
+            <Switch>
+              <Route exact path={`${props.match.url}/action`} component={ActionIndex}/>
+              <Route path={`${props.match.url}/action/:action_id/form/:id`} component={FormEditor}/>
+              <Route path={`${props.match.url}/action/:id`} component={ActionReport}/>
+              <Route component={ActionIndex}/>
+            </Switch>
           </div>
         </div>
-      )
-    }
+      </div>
+    );
+  } else {
+    return (
+      <AppIndex />
+    )
   }
 }
 
-const OrganizerIndex = DragDropContext(HTML5Backend)(withCurrentUser(OrganizerIndexBase));
+const OrganizerIndex = withCurrentUser(OrganizerIndexBase);
 export default OrganizerIndex;
