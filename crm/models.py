@@ -133,6 +133,7 @@ class Signup(models.Model):
     activist = models.ForeignKey(Activist, related_name='signups')
     action = models.ForeignKey(Action, related_name='signups')
     state = EnumIntegerField(SignupState)
+    created = models.DateTimeField(auto_now_add=True)
 
     objects = SignupManager()
 

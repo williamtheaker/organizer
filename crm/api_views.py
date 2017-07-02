@@ -172,7 +172,7 @@ class FormViewSet(IntrospectiveViewSet):
         form_obj = self.get_object()
         fields = models.FormField.objects.filter(form=form_obj).all()
         serializer = serializers.ResponseSerializer(data={
-            'email': request.data['email'],
+            'email': request.data.get('email', None),
             'name': request.data.get('name', None),
             'address': request.data.get('address', None)
         })

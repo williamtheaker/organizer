@@ -38,7 +38,8 @@ class SignupSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSer
 
     class Meta:
         model = models.Signup
-        fields = ('action', 'activist', 'state', 'responses', 'id', 'url')
+        fields = ('action', 'activist', 'state', 'responses', 'id', 'url',
+        'created')
 
 class FieldSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -88,8 +89,8 @@ class FormSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSeria
 
 class ResponseSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    name = serializers.CharField(allow_blank=True)
-    address = serializers.CharField(allow_blank=True)
+    name = serializers.CharField(required=False, allow_null=True)
+    address = serializers.CharField(required=False, allow_null=True)
 
 class EmailSerializer(serializers.Serializer):
     subject = serializers.CharField()
