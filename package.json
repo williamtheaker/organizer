@@ -9,7 +9,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "ampersand-collection": "^2.0.1",
     "ampersand-events": "^2.0.2",
+    "ampersand-fetch": "git://github.com/tdfischer/ampersand-fetch",
     "ampersand-model": "^8.0.0",
     "ampersand-rest-collection": "^6.0.0",
     "ampersand-state": "^5.0.2",
@@ -72,6 +74,7 @@
     "react-router-dom": "^4.1.1",
     "react-rte": "^0.11.0",
     "react-select": "^1.0.0-rc.5",
+    "react-tap-event-plugin": "^2.0.1",
     "react-test-renderer": "^15.6.1",
     "react-text-truncate": "^0.10.2",
     "react-transition-group": "^1.2.0",
