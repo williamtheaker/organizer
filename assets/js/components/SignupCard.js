@@ -2,22 +2,10 @@ import { DragSource } from 'react-dnd'
 import React from 'react'
 import Gravatar from 'react-gravatar'
 import _ from 'lodash'
-//import { Checkbox } from 'react-form'
 import { Checkbox, CardHeader, Card, Badge, Avatar, ListItem } from 'material-ui'
 
 
 class SignupCardBase extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {isOpen: false};
-    this.setSignupState = this.setSignupState.bind(this);
-  }
-
-  setSignupState(state) {
-    this.props.signup.state = state;
-    this.props.signup.save();
-  }
-
   componentWillUnmount() {
     this.props.signup.set({selected: false});
   }
