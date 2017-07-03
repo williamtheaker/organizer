@@ -6,10 +6,10 @@ import { Link } from 'react-router-dom'
 import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
 import Switch from 'rc-switch'
-import { Action, } from '../API'
 import { DragDropContext, DropTarget } from 'react-dnd'
 import AmpersandState from 'ampersand-state'
-import { bindToState, withState, FormCollection, ActivistCollection, Action as AmpersandAction, Signup, SignupCollection } from '../Model'
+import { bindToState, withState, FormCollection, ActivistCollection, Action, Signup, SignupCollection } from '../Model'
+import { DjangoModel } from '../ModelBase'
 import { CSSTransitionGroup } from 'react-transition-group'
 import SignupCard from './SignupCard'
 import ActivistCard from './ActivistCard'
@@ -162,7 +162,7 @@ const ConversionState = AmpersandState.extend({
     loaded: ['boolean', false, false],
   },
   children: {
-    action: AmpersandAction,
+    action: Action,
   },
   collections: {
     rows: SelectableSignupCollection,
@@ -293,6 +293,40 @@ class ActivistAutocomplete extends React.PureComponent {
   }
 }
 
+const EmailPreview = DjangoModel.extend({
+  props: {
+    body: 'string',
+    subject: 'string',
+    signups: 'array',
+    action: 'state'
+  },
+  derived: {
+    url: {
+      deps: ['action.url'],
+      fn() {
+        return this.action.url+'email_activists_preview/'
+      }
+    }
+  }
+})
+
+const Email = EmailPreview.extend({
+  props: {
+    body: 'string',
+    subject: 'string',
+    signups: 'array',
+    action: 'state'
+  },
+  derived: {
+    url: {
+      deps: ['action.url'],
+      fn() {
+        return this.action.url+'email_activists/'
+      }
+    }
+  }
+})
+
 class EmailEditor extends React.PureComponent {
   constructor(props) {
     super(props);
@@ -304,23 +338,37 @@ class EmailEditor extends React.PureComponent {
   }
 
   updatePreview(contents) {
-    new Action({id: this.props.model.action.id})
-      .email_activists_preview("Preview", contents, this.props.model.selected)
-      .then((r) => {
-        this.setState({preview: r.data.body});
+    const data = {
+      subject: 'Preview',
+      body: contents,
+      signups: _.map(this.props.model.selected, ({id}) => id),
+      action: this.props.model.action
+    };
+    const preview = new EmailPreview(data)
+    return preview.save()
+      .then((r) => r.json())
+      .then((json) => {
+        this.setState({preview: json.body});
       });
   }
 
   handleSubmit(values) {
     this.setState({sending: true});
-    new Action({id: this.props.model.action.id})
-      .email_activists(values.subject, values.body, this.props.model.selected)
-      .then((r) => {
-        this.setState({sending: false});
+    const data = {
+      subject: values.subject,
+      body: values.body,
+      signups: _.map(this.props.model.selected, ({id}) => id),
+      action: this.props.model.action
+    };
+    const mail = new Email(data)
+    return mail.save()
+      .then((r) => r.json())
+      .then((json) => {
+        this.setState({sending: false})
         this.props.onFinished();
       })
       .catch(() => {
-        this.setState({sending: false});
+        this.setState({sending: false})
       });
   }
 

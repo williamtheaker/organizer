@@ -4,17 +4,22 @@ import AmpersandRestCollection from 'ampersand-rest-collection'
 import moment from 'moment'
 import { csrftoken } from './Django'
 
+const DjangoFetch = (method, model, options) => {
+  options = {...options, credentials: 'include'}
+  return AmpersandFetch(method, model, options)
+}
+
 const DjangoConfig = () => {
   return {
     headers: {
-      'X-CSRFToken': csrftoken
+      'X-CSRFToken': csrftoken,
     },
   }
 }
 
 export const DjangoModel = AmpersandModel.extend({
   ajaxConfig: DjangoConfig,
-  sync: AmpersandFetch,
+  sync: DjangoFetch,
   props: {
     id: 'number'
   },
