@@ -124,7 +124,8 @@ export const SubmissionFieldCollection = AmpersandCollection.extend({
 export const User = DjangoModel.extend({
   urlRoot: '/api/users/',
   props: {
-    id: 'any'
+    id: 'any',
+    email: 'string'
   }
 })
 
