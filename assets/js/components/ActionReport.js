@@ -21,54 +21,6 @@ import DatePicker from 'react-datepicker'
 import { TextField, RaisedButton, ListItem, List, Avatar, Divider, Paper, Card, CardHeader, CardText } from 'material-ui'
 import HTML5Backend from 'react-dnd-html5-backend'
 
-class Collapsable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      collapsed: true
-    }
-  }
-
-  childToRender() {
-    if (this.state.collapsed) {
-      return null
-    } else {
-      return this.props.children
-    }
-  }
-
-  toggle() {
-    this.setState({collapsed: !this.state.collapsed})
-  }
-
-  render() {
-    return (
-      <div>
-        <h3>
-          {this.props.title}
-          <a onClick={() => this.toggle()}>
-            <i className={"fa fa-" + (this.state.collapsed ? "plus" : "minus")}/>
-          </a>
-        </h3>
-        {this.childToRender()}
-      </div>
-    )
-  }
-}
-
-function SignupStateSelect(props) {
-  const options = [
-    {value: 'prospective', label: 'Prospective'},
-    {value: 'confirmed', label: 'Confirmed'},
-    {value: 'attended', label: 'Attended'},
-    {value: 'noshow', label: 'No-Show'},
-    {value: 'cancelled', label: 'Cancelled'}
-  ];
-  return (
-    <Select options={options} {...props} />
-  )
-}
-
 const collectTarget = (connect, monitor) => ({
   connectDropTarget: connect.dropTarget(),
   isOver: monitor.isOver() && monitor.canDrop()
@@ -342,48 +294,6 @@ class ActivistAutocomplete extends React.PureComponent {
     )
   }
 }
-
-const FormCards = withState((props) => {
-  const cards = _.map(props.model.forms.models, (row) => (
-    <FormCard key={row.id} form={row} action={props.model.action} />
-  ));
-  const spinner = props.model.loaded ? null : <Spinner />;
-  return (
-    <div className="form-cards">
-      {spinner}
-      {cards}
-      <div className="form-card">
-        <h3><Link to={`/organize/action/${props.model.action.id}/form/new`}>Create a new form</Link></h3>
-        Create a new form to process signups and data for an action
-      </div>
-      <br style={{clear:'both'}} />
-    </div>
-  )
-});
-
-class FormCardBase extends React.Component {
-  constructor(props) {
-    super(props);
-    this.doChange = this.doChange.bind(this);
-  }
-
-  doChange(checked) {
-    this.props.form.save({active: checked}, {patch: true});
-  }
-
-  render() {
-    return (
-      <div className="form-card">
-        <h3><Link to={`/organize/action/${this.props.action.id}/form/${this.props.form.id}`}>{this.props.form.title}</Link></h3>
-        <Switch onChange={this.doChange} checked={this.props.form.active} checkedChildren="On" unCheckedChildren="Off"/>
-        <TextTruncate text={this.props.form.description} line={3} />
-        <Link to={`/action/${this.props.action.slug}/${this.props.form.id}/`}><i className="fa fa-link" /> Public Link</Link>
-      </div>
-    )
-  }
-}
-
-const FormCard = withState(FormCardBase);
 
 class EmailEditor extends React.PureComponent {
   constructor(props) {
