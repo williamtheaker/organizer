@@ -2,8 +2,23 @@ import React from 'react'
 import fetchMock from 'fetch-mock'
 import { mount, shallow } from 'enzyme'
 import { Form, Submission, bindToState, withState } from './Model'
+import { DjangoModel } from './ModelBase'
 import jsc from 'jsverify'
 import AmpersandModel from 'ampersand-model'
+
+describe('HTTP Configuration', () => {
+  it('Should send sessionid cookie and CSRF header on save', () => {
+    fetchMock.postOnce('/api/testModel/', {})
+    const TestModel = DjangoModel.extend({
+      urlRoot: '/api/testModel/'
+    });
+    const testModel = new TestModel();
+    testModel.save()
+    expect(fetchMock.lastOptions().credentials).toEqual("include");
+    const headers = fetchMock.lastOptions().headers;
+    expect(headers).toHaveProperty("X-CSRFToken");
+  })
+})
 
 describe('Submission saving', () => {
   function rejectErrors(submission) {
