@@ -1,61 +1,52 @@
 import EventEmitter from 'events'
 import React from 'react'
-import { User } from './API'
+import AmpersandState from 'ampersand-state'
+import { bindToState, User } from './Model'
 
-export default class UserManager extends EventEmitter {
-  constructor() {
-    super();
-    this.user = {};
-    this.refresh();
-  }
-
+export const AuthState = AmpersandState.extend({
+  derived: {
+    logged_in: {
+      deps: ['*'],
+      fn() {
+        return !this.user.isNew()
+      },
+      cache: false
+    }
+  },
+  children: {
+    user: User
+  },
   logout() {
-    return User.logout()
+    return fetch('/api/users/logout/')
       .then(() => {
-        this.user = {};
-        this.emit('update', this.user);
+        this.user.clear()
+      })
+  },
+  sideloadOrFetch() {
+    const hasInline = (typeof CURRENT_USER != 'undefined');
+    if (hasInline) {
+      Raven.captureBreadcrumb({
+        message: 'User loaded from sideload cache',
+        category: 'action',
+        data: CURRENT_USER,
       });
-  }
-
-  refresh() {
-    if (typeof CURRENT_USER != "undefined" && CURRENT_USER.id) {
-      this.user = CURRENT_USER;
-      this.user._valid = true;
-      this.emit('update', this.user);
+      this.user.set(CURRENT_USER)
     } else {
-      return User.getByID('me')
-        .then((response) => {
-          this.user = response.data;
-          this.user._valid = true;
-          this.emit('update', this.user);
-        });
+      return this.user.fetch({id: 'me'})
     }
   }
+});
 
-  loggedIn() {
-    return this.user._valid === true;
-  }
-}
-
-export var users = new UserManager();
+export var users = new AuthState()
 
 export class UserBinding extends React.Component {
   constructor(props) {
     super(props);
-    this.onUserUpdated = this.onUserUpdated.bind(this);
-    this.state = {user: users.user};
-  }
-
-  onUserUpdated() {
-    this.setState({user: users.user});
-  }
-
-  componentDidMount() {
-    users.on('update', this.onUserUpdated);
-  }
-
-  componentWillUnmount() {
-    users.removeListener('update', this.onUserUpdated);
+    bindToState(this, users, {
+      user: 'user',
+      logged_in: 'logged_in'
+    })
+    this.state = {user: users.user, logged_in: users.logged_in};
   }
 
   render() {
@@ -63,7 +54,7 @@ export class UserBinding extends React.Component {
       <span>
         {React.cloneElement(this.props.children, {
           current_user: this.state.user,
-          logged_in: users.loggedIn()
+          logged_in: this.state.logged_in
         })}
       </span>
     )
