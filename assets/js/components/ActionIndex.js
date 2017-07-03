@@ -10,6 +10,53 @@ import ContentCreate from 'material-ui/svg-icons/content/create'
 import TextTruncate from 'react-text-truncate'
 import ActivistCard from './ActivistCard'
 
+export const ActionCard = (props) => {
+  const total = props.action.signups.length;
+  const toPct = (v) => (v/total)*100+"%"
+  const segments = ["prospective", "contacted", "confirmed", "attended", "noshow", "cancelled"];
+  const segmentDivs = _.map(segments, segment => {
+    const count = props.action.signups.filter(s => s.state == segment).length
+    return (
+      <div key={segment} style={{width: toPct(count)}} className={segment} />
+    )
+  })
+  const progressBar = (
+    <div className="bottom-bar">
+      {segmentDivs}
+    </div>
+  )
+  const description = (props.action.forms.length > 0) ? props.action.forms[0].description : "No description";
+  const recentSignups = _.map(_.slice(props.action.signups.models, 0, 5), signup => (
+    <ActivistCard key={signup.cid} activist={signup.activist} />
+  ));
+  return (
+    <Card className="card" key={props.action.cid} >
+        <CardHeader
+          actAsExpander={true}
+          showExpandableButton={true}
+          subtitle={props.action.date.fromNow()}
+          title={props.action.name}
+          avatar={<Avatar>{props.action.signups.models.length}</Avatar>} />
+        <CardText expandable={true}>
+          <h2>Recent Signups</h2>
+          <div className="recent">
+            {recentSignups}
+          </div>
+          <p />
+          <Divider />
+          <p />
+          <TextTruncate line={4} text={description} />
+        </CardText>
+        <CardActions>
+          <Link to={`/organize/action/${props.action.id}`}>
+            <RaisedButton primary={true} label="Open" />
+          </Link>
+        </CardActions>
+        {progressBar}
+    </Card>
+  )
+}
+
 export class ActionIndexBase extends React.Component {
   constructor(props) {
     super(props);
@@ -24,56 +71,7 @@ export class ActionIndexBase extends React.Component {
   }
 
   render() {
-    const actionRows = _.map(this.state.actions, action => {
-      const total = action.signups.length;
-      const prospective = action.signups.filter(s => s.state == "prospective").length
-      const contacted = action.signups.filter(s => s.state == "contacted").length
-      const confirmed = action.signups.filter(s => s.state == "confirmed").length
-      const attended = action.signups.filter(s => s.state == "attended").length
-      const noshow = action.signups.filter(s => s.state == "noshow").length
-      const cancelled = action.signups.filter(s => s.state == "cancelled").length
-      const toPct = (v) => (v/total)*100+"%"
-      const progressBar = (
-        <div className="bottom-bar">
-          <div style={{width: toPct(prospective)}} className="prospective" />
-          <div style={{width: toPct(contacted)}} className="contacted" />
-          <div style={{width: toPct(confirmed)}} className="confirmed" />
-          <div style={{width: toPct(attended)}} className="attended" />
-          <div style={{width: toPct(noshow)}} className="noshow" />
-          <div style={{width: toPct(cancelled)}} className="cancelled" />
-        </div>
-      )
-      const description = (action.forms.length > 0) ? action.forms[0].description : "No description";
-      const recentSignups = _.map(_.slice(action.signups.models, 0, 5), signup => (
-        <ActivistCard key={signup.cid} activist={signup.activist} />
-      ));
-      return (
-        <Card className="card" key={action.cid} >
-            <CardHeader
-              actAsExpander={true}
-              showExpandableButton={true}
-              subtitle={action.date.fromNow()}
-              title={action.name}
-              avatar={<Avatar>{action.signups.models.length}</Avatar>} />
-            <CardText expandable={true}>
-              <h2>Recent Signups</h2>
-              <div className="recent">
-                {recentSignups}
-              </div>
-              <p />
-              <Divider />
-              <p />
-              <TextTruncate line={4} text={description} />
-            </CardText>
-            <CardActions>
-              <Link to={`/organize/action/${action.id}`}>
-                <RaisedButton primary={true} label="Open" />
-              </Link>
-            </CardActions>
-            {progressBar}
-        </Card>
-      )
-    })
+    const actionRows = _.map(this.state.actions, action => <ActionCard action={action} />)
     const addAction = (
       <Card className="card">
         <Link to={`/organize/action/new`}>

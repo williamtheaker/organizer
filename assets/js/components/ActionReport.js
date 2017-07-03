@@ -2,8 +2,6 @@ import React from 'react'
 import _ from 'lodash'
 import { Form, Text, FormInput, NestedForm } from 'react-form'
 import { MarkdownEditor } from 'react-markdown-editor'
-import Select from 'react-select'
-import 'react-select/dist/react-select.css'
 import { Link } from 'react-router-dom'
 import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
@@ -367,9 +365,12 @@ export default class ActionReport extends React.PureComponent {
     this.model = new ConversionState({
       action: actionData
     });
+    this.model.update();
+  }
+
+  componentDidMount() {
     this.model.on('change:loaded', () => this.forceUpdate());
     this.model.action.on('change:name change:date', () => this.forceUpdate());
-    this.model.update();
   }
 
   render() {
