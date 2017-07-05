@@ -119,6 +119,12 @@
     "testMatch": [
       "**/*test.js"
     ],
+    "coverageReporters": [
+      "json",
+      "lcov",
+      "text",
+      "html"
+    ],
     "collectCoverage": true,
     "collectCoverageFrom": [
       "assets/js/**/*.js",
