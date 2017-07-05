@@ -54,7 +54,7 @@ module.exports = {
             {test: /\.jsx?$/, 
                 //we definitely don't want babel to transpile all the files in 
                 //node_modules. That would take a long time.
-                exclude: /node_modules/, 
+                exclude: /node_modules\/(?!(gravatar-url|md5-hex)\/).*/,
                 //use the babel loader 
                 loaders: ['babel-loader'] 
             },
