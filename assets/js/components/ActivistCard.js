@@ -5,31 +5,28 @@ import _ from 'lodash'
 import { Checkbox } from 'react-form'
 import { Card, CardHeader, Avatar } from 'material-ui'
 
-class ActivistCardBase extends React.Component {
-  render() {
-    const classes = "activist-card " +
-                    (this.props.dragging ? "dragging " : "");
-    const draggable = this.props.connectDragSource(
-      <div>
-        <Card className={classes}>
-          <CardHeader
-            title={this.props.activist.name}
-            subtitle={this.props.activist.email}
-            avatar={<Avatar className={"rank-"+this.props.activist.rank}>{this.props.activist.rank}</Avatar>} />
-        </Card>
-      </div>
-    )
-    return (
-      <div className="activist-card-wrap">
-        {draggable}
-      </div>
-    )
-  }
+const ActivistCardBase = (props) => {
+  const classes = "activist-card " +
+                  (props.dragging ? "dragging " : "");
+  const draggable = props.connectDragSource(
+    <div>
+      <Card className={classes}>
+        <CardHeader
+          title={props.activist.name}
+          subtitle={props.activist.email}
+          avatar={<Avatar className={"rank-"+props.activist.rank}>{props.activist.rank}</Avatar>} />
+      </Card>
+    </div>
+  )
+  return (
+    <div className="activist-card-wrap">
+      {draggable}
+    </div>
+  )
 }
 
 const dragSpec = {
   beginDrag(props, monitor, component) {
-    props.onDragging && props.onDragging(true);
     return {activist: props.activist}
   },
 }
