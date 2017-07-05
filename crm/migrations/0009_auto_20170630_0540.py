@@ -3,7 +3,20 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+from django.db.models.functions import Concat
 import django.utils.timezone
+
+def dedupe_signups(apps, schema_editor):
+    SignupModel = apps.get_model('crm', 'Signup')
+    signupsWithDupes = SignupModel.objects\
+                .values('activist', 'action') \
+                .annotate(dedupe=Concat(models.F('activist'), models.Value(','), models.F('action'))).annotate(count=models.Count('dedupe'))\
+                .filter(count__gt=1)
+    for dupe in signupsWithDupes:
+        theseDuplicates = SignupModel.objects.filter(activist_id=dupe['activist'],
+                action_id=dupe['action']).order_by('-state')
+        for d in theseDuplicates[1:]:
+            d.delete()
 
 
 class Migration(migrations.Migration):
@@ -13,6 +26,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(dedupe_signups, reverse_code=migrations.RunPython.noop),
         migrations.AddField(
             model_name='signup',
             name='created',
