@@ -48,13 +48,14 @@ const columnSpec = {
   }
 }
 
-const ColumnTarget = withState(DropTarget(["signup", "activist"], columnSpec, collectTarget)((props) => {
+const CardDropTarget = DropTarget(["signup", "activist"], columnSpec, collectTarget)
+
+const ColumnTarget = withState(CardDropTarget((props) => {
   const myRows = props.model[props.state];
   const cards = _.map(myRows, (row) => (
     <SignupCard
       key={row.id}
-      signup={row}
-      onDragging={props.onDragging} />
+      signup={row} />
   ))
   const selectAll = () => {
     _.each(myRows, r => r.set({selected: true}))
@@ -191,58 +192,39 @@ const ConversionState = AmpersandState.extend({
   }
 });
 
-class ActivistConversionUIBase extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {dragging: false, showMore: false};
-    this.onDragging = this.onDragging.bind(this);
-    this.props.model.suggestions.on('change add reset', () => this.forceUpdate());
+const Suggestions = withState((props) => {
+  if (!props.model.loaded) {
+    return <div className="card-list"><Spinner /></div>
+  } else if (props.model.suggestions.length == 0) {
+    return <div className="card-list"><p><em>Add some activists below to see suggestions</em></p></div>
+  } else {
+    return <div className="card-list">{props.model.suggestions.map(f => (
+      <ActivistCard activist={f} key={f.cid} />
+    ))}</div>
   }
+})
 
-  onDragging(d) {
-    this.setState({dragging: d});
-  }
+const HTML5DragDropContext = DragDropContext(HTML5Backend)
 
-  showMore() {
-    return this.state.dragging || this.state.showMore;
-  }
+const ActivistConversionUI = withState(HTML5DragDropContext((props) => (
+  <div className="conversion-ui">
+    <div className="suggestions">
+      <h2>Suggestions</h2>
+      <Suggestions model={props.model} />
+    </div>
+    <p />
+    <Divider />
+    <p />
+    <div className="card-columns">
+      <Column name="Prospective" state="prospective" model={props.model}/>
+      <Column name="Contacted" state="contacted" model={props.model} />
+      <Column name="Confirmed" state="confirmed" model={props.model} />
+      <Column name="Attended" state="attended" model={props.model} />
+    </div>
+  </div>
+)))
 
-  render() {
-    var suggestions = null;
-    if (!this.props.model.loaded) {
-      suggestions = <Spinner />
-    } else if (this.props.model.suggestions.length == 0) {
-      suggestions = <p><em>Add some activists below to see suggestions</em></p>
-    } else {
-      suggestions = this.props.model.suggestions.map(f => (
-        <ActivistCard activist={f} key={f.cid} />
-      ));
-    }
-    return (
-      <div className="conversion-ui">
-        <div className="suggestions">
-          <h2>Suggestions</h2>
-          <div className="card-list">
-            {suggestions}
-          </div>
-        </div>
-        <p />
-        <Divider />
-        <p />
-        <div className="card-columns">
-          <Column name="Prospective" onDragging={this.onDragging} state="prospective" model={this.props.model}/>
-          <Column name="Contacted" onDragging={this.onDragging} state="contacted" model={this.props.model} />
-          <Column name="Confirmed" onDragging={this.onDragging} state="confirmed" model={this.props.model} />
-          <Column name="Attended" onDragging={this.onDragging} state="attended" model={this.props.model} />
-        </div>
-      </div>
-    )
-  }
-}
-
-const ActivistConversionUI = DragDropContext(HTML5Backend)(withState(ActivistConversionUIBase));
-
-class ActivistAutocomplete extends React.PureComponent {
+class ActivistAutocomplete extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -327,7 +309,7 @@ const Email = EmailPreview.extend({
   }
 })
 
-class EmailEditor extends React.PureComponent {
+class EmailEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -404,7 +386,7 @@ class EmailEditor extends React.PureComponent {
   }
 }
 
-export default class ActionReport extends React.PureComponent {
+export default class ActionReport extends React.Component {
   constructor(props) {
     super(props);
     this.state = {showEmail: false};
