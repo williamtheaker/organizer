@@ -116,7 +116,7 @@ export const FormInputView = (props) => (
     <Card className="small-12 columns medium-7 medium-offset-1 the-ask">
       <h1>{props.form.title}</h1>
       <div className="body">
-        <ReactMarkdown source={props.form.description || ""} />
+        <ReactMarkdown source={props.form.action.description || ""} />
       </div>
       <Divider />
       <SignupForm onSubmit={props.onSubmit} form={props.form} fields={props.form.fields} />
@@ -147,10 +147,13 @@ export default class FormView extends React.PureComponent {
 
     bindToState(this, this.form, {
       title: 'title',
-      description: 'description',
       fields: 'fields',
       action: 'action'
     });
+
+    bindToState(this, this.form.action, {
+      description: 'description'
+    })
 
     this.state = {
       submitted: false,

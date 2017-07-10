@@ -27,8 +27,9 @@ describe('ActionCard', () => {
 
   it('renders a complete action', () => {
     const action = new Action({
+      description: 'Description',
       forms: [
-        new Form({description: 'Description'})
+        new Form()
       ],
       signups: [
         new Signup()
