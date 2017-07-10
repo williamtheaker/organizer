@@ -66,6 +66,7 @@ class Activist(models.Model):
 class Action(models.Model):
     name = models.CharField(max_length=200)
     date = models.DateTimeField()
+    description = models.TextField()
 
     class Meta:
         ordering = ['-date', 'name']
@@ -83,7 +84,6 @@ class Action(models.Model):
 class Form(models.Model):
     action = models.ForeignKey(Action, related_name='forms')
     title = models.CharField(max_length=200)
-    description = models.TextField()
     active = models.BooleanField(default=True)
     next_state = EnumIntegerField(SignupState)
 

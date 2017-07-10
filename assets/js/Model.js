@@ -46,6 +46,7 @@ export const Action = DjangoModel.extend({
   urlRoot: '/api/actions/',
   props: {
     name: ['string', true, () => "Untitled"],
+    description: ['string', true, () => ''],
     date: ['moment', true, () => moment()],
     fields: ['array', false, () => []],
     forms: ['array', false, () => []]
@@ -75,7 +76,6 @@ export const Form = DjangoModel.extend({
   urlRoot: '/api/forms/',
   props: {
     active: 'boolean',
-    description: 'string',
     next_state: 'string',
     title: 'string'
   },

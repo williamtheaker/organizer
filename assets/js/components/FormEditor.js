@@ -20,41 +20,6 @@ function SignupStateSelect(props) {
   )
 }
 
-class MarkdownEditor extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      value: RichTextEditor.createEmptyValue(),
-      rendered: ''
-    }
-    this.onChange = this.onChange.bind(this);
-  }
-
-  onChange(v) {
-    this.setState(prevState => {
-      value: v
-    });
-    this.setState(prevState => {
-      const rendered = prevState.value.toString('markdown');
-      this.props.onChange(rendered);
-      return {rendered: rendered};
-    });
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (this.props.value != nextProps.value) {
-      this.setState({value: RichTextEditor.createValueFromString(nextProps.value, 'markdown')});
-    }
-  }
-
-  render() {
-    return <RichTextEditor
-      onChange={this.onChange}
-      value={this.state.value}
-    />
-  }
-}
-
 const FieldControl = (props) => {
   const {control_type, ...newProps} = props;
   switch(control_type) {

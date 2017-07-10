@@ -25,7 +25,7 @@ export const ActionCard = (props) => {
       {segmentDivs}
     </div>
   )
-  const description = (props.action.forms.length > 0) ? props.action.forms[0].description : "No description";
+  const description = props.action.description
   const recentSignups = _.map(_.slice(props.action.signups.models, 0, 5), signup => (
     <ActivistCard key={signup.cid} activist={signup.activist} />
   ));

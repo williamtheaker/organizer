@@ -50,7 +50,7 @@ class ActionFormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
     class Meta:
         model = models.Form
-        fields = ('fields', 'title', 'description', 'id', 'url', 'active')
+        fields = ('fields', 'title', 'id', 'url', 'active')
 
 class ActionSerializer(serializers.HyperlinkedModelSerializer):
     signups = SignupSerializer(many=True, read_only=True)
@@ -66,18 +66,18 @@ class ActionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Action
         fields = ('name', 'date', 'id', 'signups', 'forms',
-                'fields', 'url')
+                'fields', 'url', 'description')
 
 class ViewFormSerializer(serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(many=True)
     action = serializers.SerializerMethodField()
 
     def get_action(self, obj):
-        return {'name': obj.action.name, 'date': unicode(obj.action.date)}
+        return {'name': obj.action.name, 'description': obj.action.description, 'date': unicode(obj.action.date)}
 
     class Meta:
         model = models.Form
-        fields = ('fields', 'action', 'title', 'description', 'url', 'id')
+        fields = ('fields', 'action', 'title', 'url', 'id')
 
 class FormSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
     fields = FieldSerializer(required=False, many=True)
@@ -85,7 +85,7 @@ class FormSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSeria
 
     class Meta:
         model = models.Form
-        fields = ('fields', 'action', 'title', 'description', 'url', 'id', 'next_state', 'active')
+        fields = ('fields', 'action', 'title', 'url', 'id', 'next_state', 'active')
 
 class ResponseSerializer(serializers.Serializer):
     email = serializers.EmailField()
