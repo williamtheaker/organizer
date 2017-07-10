@@ -2,11 +2,23 @@ import AmpersandFetch from 'ampersand-fetch'
 import AmpersandModel from 'ampersand-model'
 import AmpersandRestCollection from 'ampersand-rest-collection'
 import moment from 'moment'
+import _ from 'lodash'
 import { csrftoken } from './Django'
 
 const DjangoFetch = (method, model, options) => {
   options = {...options, credentials: 'include'}
-  return AmpersandFetch(method, model, options)
+  return AmpersandFetch(method, model, options).then((response) => {
+    if (response.ok) {
+      return response.json()
+        .then((body) => {
+          if (options.success && _.isFunction(options.success)) {
+            options.success(body);
+          }
+          return response;
+        })
+    }
+    return response;
+  });
 }
 
 const DjangoConfig = () => {
