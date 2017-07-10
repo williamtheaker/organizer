@@ -9,6 +9,8 @@ import HTML5Backend from 'react-dnd-html5-backend'
 import ContentCreate from 'material-ui/svg-icons/content/create'
 import TextTruncate from 'react-text-truncate'
 import ActivistCard from './ActivistCard'
+import { fetchActions } from '../actions'
+import { connect } from 'react-redux'
 
 export const ActionCard = (props) => {
   const total = props.action.signups.length;
@@ -57,21 +59,20 @@ export const ActionCard = (props) => {
   )
 }
 
+
+
 export class ActionIndexBase extends React.Component {
   constructor(props) {
     super(props);
-    this.actions = new ActionCollection();
-    this.state = {actions: []}
-    bindToCollection(this, this.actions, 'actions');
-    this.actions.fetch();
   }
 
   componentDidMount() {
-    titles.setSubtitle("Actions");
+    const { dispatch } = this.props;
+    dispatch(fetchActions());
   }
 
   render() {
-    const actionRows = _.map(this.state.actions, action => <ActionCard action={action} />)
+    const actionRows = _.map(this.props.actions, action => <ActionCard action={action} />)
     const addAction = (
       <Card className="card">
         <Link to={`/organize/action/new`}>
@@ -94,5 +95,16 @@ export class ActionIndexBase extends React.Component {
   }
 }
 
-const ActionIndex = DragDropContext(HTML5Backend)(ActionIndexBase);
+const mapStateToProps = (state) => {
+  const {
+    actions
+  } = state || {actions: {actions:[]}}
+
+  return {
+    actions: actions.actions,
+    loading: actions.loading
+  }
+}
+
+const ActionIndex = connect(mapStateToProps)(DragDropContext(HTML5Backend)(ActionIndexBase));
 export default ActionIndex;

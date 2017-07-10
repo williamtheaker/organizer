@@ -2,7 +2,7 @@ import React from 'react'
 import RichTextEditor from 'react-rte'
 import _ from 'lodash'
 import { Form, Text, FormInput, NestedForm } from 'react-form'
-import { MarkdownEditor } from 'react-markdown-editor'
+import MarkdownEditor from './MarkdownEditor'
 import { Link } from 'react-router-dom'
 import TextTruncate from 'react-text-truncate'
 import Autocomplete from 'react-autocomplete'
@@ -19,6 +19,9 @@ import Modal from 'react-modal'
 import DatePicker from 'react-datepicker'
 import { TextField, RaisedButton, ListItem, List, Avatar, Divider, Paper, Card, CardHeader, CardText } from 'material-ui'
 import HTML5Backend from 'react-dnd-html5-backend'
+
+import { connect } from 'react-redux'
+import { fetchActionIfNeeded, setCurrentAction } from '../actions'
 
 const collectTarget = (connect, monitor) => ({
   connectDropTarget: connect.dropTarget(),
@@ -181,9 +184,13 @@ const ConversionState = AmpersandState.extend({
       this.loaded = true;
     } else {
       this.loaded = false;
-      this.action.fetch();
-      this.suggestions.fetch({uri: this.action.url + 'suggestions/'});
-      this.rows.fetch({success: () => this.loaded=true, data: {action_id: this.action.id}});
+      return Promise.all([
+        this.action.fetch(),
+        this.suggestions.fetch({uri: this.action.url + 'suggestions/'}),
+        this.rows.fetch({data: {action_id: this.action.id}})
+      ]).then(() => {
+        this.loaded = true;
+      })
     }
   }
 });
@@ -382,27 +389,48 @@ class EmailEditor extends React.Component {
   }
 }
 
-export default class ActionReport extends React.Component {
+const ActionEditor = withState(props => (
+  <div>
+    <h2>
+      <TextField
+        fullWidth={true}
+        floatingLabelText="Title"
+        disabled={!props.loaded}
+        onBlur={(evt) => props.action.save({name: evt.target.value}, {patch: true})}
+        value={props.action.name}
+        onChange={(evt) => props.action.set({name: evt.target.value})} />
+    </h2>
+    <MarkdownEditor
+      value={props.action.description}
+      onChange={v => props.action.description = v}
+      onBlur={() => props.action.save()} />
+  </div>
+))
+
+export class ActionReportBase extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      showEmail: false,
-      editorState: RichTextEditor.createEmptyValue()
-    };
+    this.state = {showEmail: false, description: '', title: ''};
     const isNew = this.props.match.params.id == "new"
     const actionData = isNew ? {} : {id: Number(this.props.match.params.id)}
     this.model = new ConversionState({
       action: actionData
     });
+
+    bindToState(this, this.model.action, {
+      description: 'description',
+      name: 'name'
+    })
+
     this.model.update();
   }
 
   componentDidMount() {
     this.model.on('change:loaded', () => this.forceUpdate());
     this.model.action.on('change:name change:date change:description', () => this.forceUpdate());
-    this.model.action.on('change:description', () => {
-      this.setState({editorState: RichTextEditor.createValueFromString(this.model.action.description, 'markdown')})
-    });
+    const { dispatch } = this.props;
+    dispatch(fetchActionIfNeeded(this.props.match.params.id));
+    dispatch(setCurrentAction(this.props.match.params.id));
   }
 
   render() {
@@ -410,19 +438,7 @@ export default class ActionReport extends React.Component {
       <div className="action-report">
         <div className="row">
           <div className="small-8 columns">
-            <h2>
-              <TextField
-                fullWidth={true}
-                floatingLabelText="Title"
-                disabled={!this.model.loaded}
-                onBlur={(evt) => this.model.action.save({name: evt.target.value}, {patch: true})}
-                value={this.model.action.name}
-                onChange={(evt) => this.model.action.set({name: evt.target.value})} />
-            </h2>
-              <RichTextEditor
-                value={this.state.editorState}
-                onChange={v => this.setState({editorState: v})}
-                onBlur={() => this.model.action.save({description: this.state.editorState.toString('markdown')})} />
+            <ActionEditor loaded={this.props.loaded} action={this.props.action} />
           </div>
           <div className="small-4 columns">
             <Paper>
@@ -430,8 +446,8 @@ export default class ActionReport extends React.Component {
                 <ListItem>
                   Date:
                   <DatePicker
-                    selected={this.model.action.date}
-                    onChange={(date) => this.model.action.save({date: date}, {patch: true})}/>
+                    selected={this.props.action.date}
+                    onChange={(date) => this.props.action.save({date: date}, {patch: true})}/>
                 </ListItem>
                 <ListItem>
                   <Link
@@ -459,3 +475,15 @@ export default class ActionReport extends React.Component {
     )
   }
 }
+
+function mapStateToProps(state) {
+  const filter = _.matchesProperty('id', state.currentAction);
+  const action = _.find(state.actions.actions, filter) || new Action();
+  return {
+    action: action,
+    loaded: !state.actions.loading
+  }
+}
+
+const ActionReport = connect(mapStateToProps)(ActionReportBase)
+export default ActionReport;
