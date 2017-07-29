@@ -8,21 +8,18 @@ import { csrftoken } from './Django'
 const DjangoFetch = (method, model, options) => {
   options = {...options, credentials: 'include'}
   return AmpersandFetch(method, model, options).then((response) => {
-    if (response.ok) {
-      return response.json()
-        .then((body) => {
-          if (options.success && _.isFunction(options.success)) {
-            options.success(body);
-          }
-          return response;
-        }, (err) => {
-          if (options.success && _.isFunction(options.success)) {
-            options.success();
-          }
-          return Promise.resolve(response);
-        })
-    }
-    return response;
+    return response.json()
+      .then((body) => {
+        if (options.success && _.isFunction(options.success)) {
+          options.success(body);
+        }
+        return Promise.resolve(response);
+      }, (err) => {
+        if (options.success && _.isFunction(options.success)) {
+          options.success();
+        }
+        return Promise.resolve(response);
+      })
   });
 }
 

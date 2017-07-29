@@ -70,17 +70,20 @@ export class SignupForm extends React.Component {
     }
     const submission = new Submission(submissionData);
     this.setState({serverError: ''});
-    submission.save()
-      .then(this.props.onSubmit)
-      .catch((err) => {
-        const massagedErrors = _.mapValues(submission.errors, v => v.join(' '))
-        theForm.setAllTouched(true, {errors: massagedErrors});
-        if (err.response && err.response.status != 400) {
-          this.setState({serverError: "Recieved "+err.response.status+" from server. Try again."});
+    return submission.save()
+      .then((response) => {
+        if (!response.ok) {
+          if (response.status == 400) {
+            const massagedErrors = _.mapValues(submission.errors, v => v.join(' '))
+            theForm.setAllTouched(true, {errors: massagedErrors});
+          } else {
+            this.setState({serverError: "Recieved "+err.response.status+" from server. Try again."});
+          }
+          return Promise.reject(response);
         } else {
-          return Promise.reject(err);
+          return response;
         }
-    })
+    }).then(this.props.onSubmit);
   }
 
   render() {
