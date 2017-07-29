@@ -15,6 +15,11 @@ const DjangoFetch = (method, model, options) => {
             options.success(body);
           }
           return response;
+        }, (err) => {
+          if (options.success && _.isFunction(options.success)) {
+            options.success();
+          }
+          return Promise.resolve(response);
         })
     }
     return response;
