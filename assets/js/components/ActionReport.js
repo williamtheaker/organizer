@@ -1,4 +1,5 @@
 import React from 'react'
+import RichTextEditor from 'react-rte'
 import _ from 'lodash'
 import { Form, Text, FormInput, NestedForm } from 'react-form'
 import { MarkdownEditor } from 'react-markdown-editor'
@@ -8,7 +9,7 @@ import Autocomplete from 'react-autocomplete'
 import Switch from 'rc-switch'
 import { DragDropContext, DropTarget } from 'react-dnd'
 import AmpersandState from 'ampersand-state'
-import { bindToState, withState, FormCollection, ActivistCollection, Action, Signup, SignupCollection } from '../Model'
+import { bindToState, withState, ActivistCollection, Action, Signup, SignupCollection } from '../Model'
 import { DjangoModel } from '../ModelBase'
 import { CSSTransitionGroup } from 'react-transition-group'
 import SignupCard from './SignupCard'
@@ -168,15 +169,11 @@ const ConversionState = AmpersandState.extend({
   collections: {
     rows: SelectableSignupCollection,
     suggestions: ActivistCollection,
-    forms: FormCollection
   },
   initialize() {
     this.rows.on('add remove change:state change', _.debounce(() => {
       this.changeHash += 1;
       this.suggestions.fetch({uri: this.action.url + 'suggestions/'});
-    }, 50));
-    this.forms.on('add remove change', _.debounce(() => {
-      this.changeHash += 1;
     }, 50));
   },
   update() {
@@ -186,7 +183,6 @@ const ConversionState = AmpersandState.extend({
       this.loaded = false;
       this.action.fetch();
       this.suggestions.fetch({uri: this.action.url + 'suggestions/'});
-      this.forms.fetch({data: {action_id: this.action.id}});
       this.rows.fetch({success: () => this.loaded=true, data: {action_id: this.action.id}});
     }
   }
@@ -389,7 +385,10 @@ class EmailEditor extends React.Component {
 export default class ActionReport extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {showEmail: false};
+    this.state = {
+      showEmail: false,
+      editorState: RichTextEditor.createEmptyValue()
+    };
     const isNew = this.props.match.params.id == "new"
     const actionData = isNew ? {} : {id: Number(this.props.match.params.id)}
     this.model = new ConversionState({
@@ -400,18 +399,13 @@ export default class ActionReport extends React.Component {
 
   componentDidMount() {
     this.model.on('change:loaded', () => this.forceUpdate());
-    this.model.action.on('change:name change:date', () => this.forceUpdate());
+    this.model.action.on('change:name change:date change:description', () => this.forceUpdate());
+    this.model.action.on('change:description', () => {
+      this.setState({editorState: RichTextEditor.createValueFromString(this.model.action.description, 'markdown')})
+    });
   }
 
   render() {
-    const formLinks = _.map(this.model.action.forms, f => (
-      <ListItem key={f.cid}>
-        <Link to={`/action/${this.model.action.slug}/${f.id}/`}>
-          <i className="fa fa-link" />
-          {f.title}
-        </Link>
-      </ListItem>
-    ));
     return (
       <div className="action-report">
         <div className="row">
@@ -425,6 +419,10 @@ export default class ActionReport extends React.Component {
                 value={this.model.action.name}
                 onChange={(evt) => this.model.action.set({name: evt.target.value})} />
             </h2>
+              <RichTextEditor
+                value={this.state.editorState}
+                onChange={v => this.setState({editorState: v})}
+                onBlur={() => this.model.action.save({description: this.state.editorState.toString('markdown')})} />
           </div>
           <div className="small-4 columns">
             <Paper>
@@ -435,11 +433,10 @@ export default class ActionReport extends React.Component {
                     selected={this.model.action.date}
                     onChange={(date) => this.model.action.save({date: date}, {patch: true})}/>
                 </ListItem>
-                {formLinks}
                 <ListItem>
                   <Link
-                    to={`/organize/action/${this.model.action.id}/form/new`}>
-                    Create a new form
+                    to={`/action/${this.model.action.slug}-${this.model.action.id}/`}>
+                    View action on site
                   </Link>
                 </ListItem>
               </List>

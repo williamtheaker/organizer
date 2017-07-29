@@ -18,8 +18,7 @@ const App = (props) => (
   <ThemeProvider>
     <Router>
       <div>
-        <Route exact path="/crm/f/:id" component={FormView}/>
-        <Route path="/action/:action/:id" component={FormView}/>
+        <Route path="/action/:id" component={FormView}/>
         <Route path="/organize" component={LazyOrganizerIndex} />
         <Route exact path="/" component={LazyAppIndex} />
         <Footer />
