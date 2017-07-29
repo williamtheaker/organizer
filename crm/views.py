@@ -11,10 +11,10 @@ def index(request, *args, **kwargs):
     return render(request, 'index.html')
 
 @xframe_options_exempt
-def view_form(request, form_id, action=None):
-    form = models.Form.objects.get(pk=form_id)
-    serializer = serializers.ViewFormSerializer(form, context={'request': request})
+def view_action(request, action_id, action_slug=None):
+    action = models.Action.objects.get(pk=action_id)
+    serializer = serializers.ViewActionSerializer(action, context={'request': request})
     return render(request, 'form.html', {
-        'form_obj': form, 
-        'form_data': json.dumps(serializer.data),
+        'action_obj': action, 
+        'action_data': json.dumps(serializer.data),
     })

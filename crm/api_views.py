@@ -83,22 +83,6 @@ class ActionViewSet(IntrospectiveViewSet):
         return Response({'results': serializer.data})
 
     @detail_route(methods=['post'])
-    def bulk_add_activists(self, request, pk=None):
-        action_obj = self.get_object()
-        serializer = serializers.AddActivistSerializer(data={
-            'activists': request.data.get('activists', None)
-        })
-        if serializer.is_valid():
-            signups = map(lambda a:
-                    models.Signup.objects.get_or_create(activist_id=a,
-                        action=action_obj, defaults={'state':
-                            models.SignupState.prospective.value }),
-                        serializer.validated_data.get('activists'))
-            return Response()
-        else:
-            return Response({'errors': serializer.errors}, 400)
-
-    @detail_route(methods=['post'])
     def email_activists_preview(self, request, pk=None):
         action_obj = self.get_object()
         serializer = serializers.EmailSerializer(data={
@@ -150,27 +134,21 @@ class ActionViewSet(IntrospectiveViewSet):
         else:
             return Response({'errors': serializer.errors}, 400)
 
-class FormViewSet(IntrospectiveViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = models.Form.objects.all()
-    serializer_class = serializers.FormSerializer
-
     @detail_route(methods=['get'], permission_classes=(AllowAny,))
     def embed(self, request, pk=None):
-        form_obj = self.get_object()
+        action_obj = self.get_object()
         embed_data = {
             'version': '1.0',
             'type': 'rich',
             'width': 400,
             'height': 500,
-            'html': "<iframe src=\"https://organizing.eastbayforward.org/crm/f/%s\" width=400 height=500></iframe>"%(form_obj.id)
+            'html': "<iframe src=\"https://organizing.eastbayforward.org/action/%s\" width=400 height=500></iframe>"%(action_obj.id)
         }
         return Response(embed_data)
 
     @detail_route(methods=['post'], permission_classes=(AllowAny,))
     def submit_response(self, request, pk=None):
-        form_obj = self.get_object()
-        fields = models.FormField.objects.filter(form=form_obj).all()
+        action_obj = self.get_object()
         serializer = serializers.ResponseSerializer(data={
             'email': request.data.get('email', None),
             'name': request.data.get('name', None),
@@ -178,33 +156,19 @@ class FormViewSet(IntrospectiveViewSet):
         })
         if serializer.is_valid():
             signup_activist, _ = models.Activist.objects.get_or_create(
-                    email = request.data['email'],
+                    email = serializer.validated_data.get('email'),
                     defaults = {
-                        'name': request.data.get('name', None),
-                        'address': request.data.get('address', '')
+                        'name': serializer.validated_data.get('name'),
+                        'address': serializer.validated_data.get('address')
                     })
             signup, _ = models.Signup.objects.update_or_create(
                     activist=signup_activist,
-                    action=form_obj.action,
-                    defaults={'state': form_obj.next_state})
+                    action=action_obj,
+                    defaults={'state': models.SignupState.confirmed})
             logging.debug("Updating signup: %s", signup )
-            values = []
-            for field in fields:
-                field_input_name = "input_%s"%(field.id)
-                field_value = request.data.get(field_input_name, '')
-                logging.debug("%s = %s", field.name, field_value)
-                models.FormResponse.objects.update_or_create(
-                        field = field,
-                        activist = signup_activist,
-                        defaults = {'value': field_value})
-            return Response()
+            return Response({})
         else:
             return Response({'errors': serializer.errors}, 400)
-
-class FieldViewSet(IntrospectiveViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = models.FormField.objects.all()
-    serializer_class = serializers.FieldSerializer
 
 class CityViewSet(IntrospectiveViewSet):
     permission_classes = (IsAuthenticated,)
@@ -227,8 +191,6 @@ class CityViewSet(IntrospectiveViewSet):
 views = {
     'users': UserViewSet,
     'actions': ActionViewSet,
-    'forms': FormViewSet,
-    'fields': FieldViewSet,
     'signups': SignupViewSet,
     'activists': ActivistViewSet,
     'cities': CityViewSet
