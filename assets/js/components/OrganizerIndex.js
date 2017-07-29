@@ -2,7 +2,6 @@ import React from 'react'
 import { Route, Link, Switch } from 'react-router-dom'
 
 import ActionReport from './ActionReport'
-import FormEditor from './FormEditor'
 import ActionIndex from './ActionIndex'
 import AppIndex from './AppIndex'
 
@@ -37,7 +36,6 @@ const OrganizerIndexBase = (props) => {
           <div className="small-12 columns">
             <Switch>
               <Route exact path={`${props.match.url}/action`} component={ActionIndex}/>
-              <Route path={`${props.match.url}/action/:action_id/form/:id`} component={FormEditor}/>
               <Route path={`${props.match.url}/action/:id`} component={ActionReport}/>
               <Route component={ActionIndex}/>
             </Switch>
