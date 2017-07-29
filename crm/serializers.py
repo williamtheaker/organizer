@@ -27,35 +27,15 @@ class ActivistSerializer(serializers.HyperlinkedModelSerializer):
         model = models.Activist
         fields = ('name',  'email', 'address', 'id', 'created', 'url', 'rank')
 
-class FormResponseSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.FormResponse
-        fields = ('value', 'id')
-
 class SignupSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
     activist = ActivistSerializer()
-    responses = FormResponseSerializer(read_only=True)
 
     class Meta:
         model = models.Signup
-        fields = ('action', 'activist', 'state', 'responses', 'id', 'url',
-        'created')
-
-class FieldSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = models.FormField
-        fields = ('id', 'name', 'control_type', 'control_data', 'form', 'url')
-
-class ActionFormSerializer(serializers.HyperlinkedModelSerializer):
-    fields = FieldSerializer(many=True)
-    class Meta:
-        model = models.Form
-        fields = ('fields', 'title', 'id', 'url', 'active')
+        fields = ('action', 'activist', 'state', 'id', 'url', 'created')
 
 class ActionSerializer(serializers.HyperlinkedModelSerializer):
     signups = SignupSerializer(many=True, read_only=True)
-    fields = FieldSerializer(many=True, read_only=True)
-    forms = ActionFormSerializer(many=True, read_only=True)
 
     def to_internal_value(self, data):
         if isinstance(data, dict):
@@ -65,27 +45,12 @@ class ActionSerializer(serializers.HyperlinkedModelSerializer):
                     queryset=models.Action.objects.all()).to_internal_value(data)
     class Meta:
         model = models.Action
-        fields = ('name', 'date', 'id', 'signups', 'forms',
-                'fields', 'url', 'description')
+        fields = ('name', 'date', 'id', 'signups', 'url', 'description')
 
-class ViewFormSerializer(serializers.HyperlinkedModelSerializer):
-    fields = FieldSerializer(many=True)
-    action = serializers.SerializerMethodField()
-
-    def get_action(self, obj):
-        return {'name': obj.action.name, 'description': obj.action.description, 'date': unicode(obj.action.date)}
-
+class ViewActionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = models.Form
-        fields = ('fields', 'action', 'title', 'url', 'id')
-
-class FormSerializer(EnumFieldSerializerMixin, serializers.HyperlinkedModelSerializer):
-    fields = FieldSerializer(required=False, many=True)
-    action = ActionSerializer()
-
-    class Meta:
-        model = models.Form
-        fields = ('fields', 'action', 'title', 'url', 'id', 'next_state', 'active')
+        model = models.Action
+        fields = ('name', 'description', 'date', 'id')
 
 class ResponseSerializer(serializers.Serializer):
     email = serializers.EmailField()

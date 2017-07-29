@@ -21,9 +21,6 @@ import StringIO
 class SignupInline(admin.TabularInline):
     model = models.Signup
 
-class FormInline(admin.TabularInline):
-    model = models.Form
-
 class ActionFilter(admin.SimpleListFilter):
     title = 'Action'
     parameter_name = 'action'
@@ -103,7 +100,6 @@ class ActivistAdmin(admin.ModelAdmin):
 class ActionAdmin(admin.ModelAdmin):
     inlines = [
         SignupInline,
-        FormInline
     ]
 
     list_display = (
@@ -111,17 +107,6 @@ class ActionAdmin(admin.ModelAdmin):
         'date',
     )
 
-class FieldInline(admin.TabularInline):
-    model = models.FormField
-
-class FormAdmin(admin.ModelAdmin):
-    inlines = [
-        FieldInline
-    ]
-
 admin.site.register(models.Action, ActionAdmin)
-admin.site.register(models.Form, FormAdmin)
-admin.site.register(models.FormField)
 admin.site.register(models.Signup)
-admin.site.register(models.FormResponse)
 admin.site.register(models.Activist, ActivistAdmin)

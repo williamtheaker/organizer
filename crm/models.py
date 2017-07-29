@@ -24,12 +24,6 @@ class SignupState(Enum):
         cancelled = 'Cancelled'
         contacted = "Contacted"
 
-class FormControlType(Enum):
-    text = 0
-    boolean = 1
-    multiple_choice = 2
-    options = 3
-
 class ActivistManager(models.Manager):
     def get_queryset(self):
         signups = Signup.objects.filter(activist=OuterRef('pk'),
@@ -71,52 +65,11 @@ class Action(models.Model):
     class Meta:
         ordering = ['-date', 'name']
 
-    @property
-    def fields(self):
-        return FormField.objects.filter(form__action=self)
-
     def get_absolute_url(self):
         return reverse('action', args=[self.id])
 
     def __unicode__(self):
         return self.name
-
-class Form(models.Model):
-    action = models.ForeignKey(Action, related_name='forms')
-    title = models.CharField(max_length=200)
-    active = models.BooleanField(default=True)
-    next_state = EnumIntegerField(SignupState)
-
-    class Meta:
-        ordering = ['title']
-
-    def get_absolute_url(self):
-        return '/crm/f/%s/'%(self.id)
-
-    def __unicode__(self):
-        return "%s: %s"%(self.action.name, self.title)
-
-class FormField(models.Model):
-    form = models.ForeignKey(Form, related_name='fields')
-    name = models.CharField(max_length=200)
-    control_type = EnumIntegerField(FormControlType)
-    control_data = models.TextField(blank=True)
-
-    @property
-    def control_type_name(self):
-        return FormControlType(int(self.control_type)).name
-
-    def __unicode__(self):
-        return "%s: %s"%(unicode(self.form), self.name)
-
-class FormResponse(models.Model):
-    field = models.ForeignKey(FormField, related_name='responses')
-    activist = models.ForeignKey(Activist, related_name='responses')
-    value = models.TextField(blank=True)
-
-    def __unicode__(self):
-        return "%s: %s: %s: %s: %s"%(self.activist.name, self.field.form.action.name,
-                self.field.form.title, self.field.name, self.value)
 
 class SignupManager(models.Manager):
     def confirmed(self):
