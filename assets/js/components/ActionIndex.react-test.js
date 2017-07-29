@@ -4,7 +4,7 @@ import ActionIndex, { ActionCard } from './ActionIndex'
 import { mount } from 'enzyme'
 import ThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import { MemoryRouter as Router } from 'react-router-dom'
-import { Action, Form, Signup } from '../Model'
+import { Action, Signup } from '../Model'
 import { CardText } from 'material-ui'
 import ActivistCard from './ActivistCard'
 import injectTapEventPlugin from 'react-tap-event-plugin';
@@ -28,9 +28,6 @@ describe('ActionCard', () => {
   it('renders a complete action', () => {
     const action = new Action({
       description: 'Description',
-      forms: [
-        new Form()
-      ],
       signups: [
         new Signup()
       ]
