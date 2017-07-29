@@ -48,8 +48,6 @@ export const Action = DjangoModel.extend({
     name: ['string', true, () => "Untitled"],
     description: ['string', true, () => ''],
     date: ['moment', true, () => moment()],
-    fields: ['array', false, () => []],
-    forms: ['array', false, () => []]
   },
   derived: {
     slug: {
@@ -62,64 +60,31 @@ export const Action = DjangoModel.extend({
   },
   collections: {
     signups: SignupCollection,
-    //forms: FormCollection,
-    //fields: FieldCollection
-  }
-});
-
-export const ActionCollection = DjangoCollection.extend({
-  url: '/api/actions/',
-  model: Action
-})
-
-export const Form = DjangoModel.extend({
-  urlRoot: '/api/forms/',
-  props: {
-    active: 'boolean',
-    next_state: 'string',
-    title: 'string'
   },
   session: {
     sideloaded: 'boolean'
   },
-  collections: {
-    //fields: FieldCollection
-  },
   sideloadOrFetch() {
-    const hasInline = (typeof INLINE_FORM_DATA != 'undefined');
-    if (hasInline && INLINE_FORM_DATA.id == this.id) {
+    const hasInline = (typeof INLINE_ACTION_DATA != 'undefined');
+    if (hasInline && INLINE_ACTION_DATA.id == this.id) {
       Raven.captureBreadcrumb({
         message: 'Form loaded from sideload cache',
         category: 'action',
-        data: INLINE_FORM_DATA,
+        data: INLINE_ACTION_DATA,
       });
-      this.set(INLINE_FORM_DATA)
+      this.set(INLINE_ACTION_DATA)
       this.sideloaded = true;
     } else {
       this.sideloaded = false;
       return DjangoModel.prototype.fetch.apply(this, arguments)
     }
   },
-  children: {
-    action: Action
-  }
 });
 
-export const FormCollection = DjangoCollection.extend({
-  url: '/api/forms/',
-  model: Form
-});
-
-export const SubmissionField = AmpersandModel.extend({
-  props: {
-    id: 'number',
-    value: 'string'
-  }
-});
-
-export const SubmissionFieldCollection = AmpersandCollection.extend({
-  model: SubmissionField
-});
+export const ActionCollection = DjangoCollection.extend({
+  url: '/api/actions/',
+  model: Action
+})
 
 export const User = DjangoModel.extend({
   urlRoot: '/api/users/',
@@ -134,17 +99,14 @@ export const Submission = DjangoModel.extend({
     name: 'string',
     email: 'string',
     address: 'string',
-    form: ['object', true, () => new Form()]
+    action: ['object', true, () => new Action()]
   },
   session: {
     errors: ['object', true, () => {}]
   },
-  collections: {
-    fields: SubmissionFieldCollection
-  },
   sync(method, model, options) {
-    if (this.form.isNew()) {
-      throw new TypeError("form property must have id");
+    if (this.action.isNew()) {
+      throw new TypeError("action property must have id");
     }
     function parseErrors(response) {
       if (response.status == 400) {
@@ -167,19 +129,11 @@ export const Submission = DjangoModel.extend({
     return DjangoModel.prototype.sync(method, model, options)
       .then(parseErrors.bind(this));
   },
-  toJSON() {
-    const serialized = this.serialize('props');
-    var fieldValues = {}
-    _.each(this.fields, field => {
-      fieldValues['input_'+field.id] = field.value;
-    })
-    return {...serialized, ...fieldValues};
-  },
   derived: {
     url: {
       deps: ['*'],
       fn() {
-        return '/api/forms/'+this.form.id+'/submit_response/'
+        return '/api/actions/'+this.action.id+'/submit_response/'
       }
     }
   }

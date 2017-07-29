@@ -1,5 +1,4 @@
 import React from 'react'
-import { titles } from '../TitleManager'
 import { Form, Text, NestedForm, FormInput } from 'react-form'
 import PlacesAutocomplete from 'react-places-autocomplete'
 import _ from 'lodash'
@@ -9,10 +8,8 @@ import Spinner from './Spinner'
 import moment from 'moment'
 import AddToCalendar from 'react-add-to-calendar'
 import { RaisedButton, Divider, Card, CardHeader, Paper } from 'material-ui'
-import { bindToState, Form as ModelForm, Submission, SubmissionField } from '../Model'
+import { withState, bindToState, Action, Submission } from '../Model'
 import Header from './Header'
-
-import FormFieldForm from './FormFieldForm'
 
 const HappyHouse = () => (
   <div className="doodle">
@@ -29,10 +26,10 @@ export const Thanks = (props) => (
       <HappyHouse />
       <p>Your response has been recorded.</p>
       <p><a onClick={() => {props.onSubmitAnother()}}>Submit another</a></p>
-      <div className="name">{props.form.action.name}</div>
-      <div className="date">{props.form.action.date.format('MMMM Do YYYY, h:mm:ss a')}</div>
+      <div className="name">{props.action.name}</div>
+      <div className="date">{props.action.date.format('MMMM Do YYYY, h:mm:ss a')}</div>
       <AddToCalendar event={props.asEvent}/>
-      <div className="until">{props.form.action.date.fromNow()}</div>
+      <div className="until">{props.action.date.fromNow()}</div>
     </div>
   </div>
 );
@@ -67,13 +64,9 @@ export class SignupForm extends React.Component {
       category: 'action',
       data: values
     });
-    const fieldValues = _.map(_.keys(values.fields), fieldID => (
-      new SubmissionField({id: fieldID, value: values.fields[fieldID]})
-    ));
     const submissionData = {
       ...values,
-      fields: fieldValues,
-      form: this.props.form
+      action: this.props.action
     }
     const submission = new Submission(submissionData);
     this.setState({serverError: ''});
@@ -82,13 +75,17 @@ export class SignupForm extends React.Component {
       .catch((err) => {
         const massagedErrors = _.mapValues(submission.errors, v => v.join(' '))
         theForm.setAllTouched(true, {errors: massagedErrors});
-        this.setState({serverError: "Recieved "+err.response.status+" from server. Try again."});
+        if (err.response && err.response.status != 400) {
+          this.setState({serverError: "Recieved "+err.response.status+" from server. Try again."});
+        } else {
+          return Promise.reject(err);
+        }
     })
   }
 
   render() {
     return (
-      <Form onSubmit={this.handleSubmit}>
+      <Form defaultValues={{email: ''}} onSubmit={this.handleSubmit}>
         {({submitForm }) => (
           <form method="post" onSubmit={submitForm}>
             <p className="error">{this.state.serverError}</p>
@@ -98,9 +95,6 @@ export class SignupForm extends React.Component {
               Address
               <PlacesAutocompleteField field="address" />
             </label>
-            <NestedForm field='fields'>
-              <FormFieldForm fields={this.props.fields} />
-            </NestedForm>
             <RaisedButton label="Submit" fullWidth={true} primary={true} labelPosition="before" containerElement="label">
               <button type="submit" />
             </RaisedButton>
@@ -111,54 +105,50 @@ export class SignupForm extends React.Component {
   }
 }
 
-export const FormInputView = (props) => (
+export const FormInputView = withState((props) => (
   <Paper zDepth={2} className="expanded row the-form">
     <Card className="small-12 columns medium-7 medium-offset-1 the-ask">
-      <h1>{props.form.title}</h1>
+      <h1>{props.action.name}</h1>
       <div className="body">
-        <ReactMarkdown source={props.form.action.description || ""} />
+        <ReactMarkdown source={props.action.description || ""} />
       </div>
       <Divider />
-      <SignupForm onSubmit={props.onSubmit} form={props.form} fields={props.form.fields} />
+      <SignupForm onSubmit={props.onSubmit} action={props.action} />
     </Card>
     <Paper zDepth={2} className="medium-3 columns meta">
-      <div className="name">{props.form.action.name}</div>
-      <div className="date">{props.form.action.date.format('MMMM Do YYYY, h:mm:ss a')}</div>
+      <div className="name">{props.action.name}</div>
+      <div className="date">{props.action.date.format('MMMM Do YYYY, h:mm:ss a')}</div>
       <AddToCalendar event={props.eventDescription}/>
-      <div className="until">{props.form.action.date.fromNow()}</div>
+      <div className="until">{props.action.date.fromNow()}</div>
     </Paper>
   </Paper>
-)
+))
 
 export default class FormView extends React.PureComponent {
   constructor(props) {
     super(props);
-
-    const formData = {id: Number(props.match.params.id)};
-    this.form = new ModelForm(formData);
-    this.form.sideloadOrFetch({success: () => {
+    const urlID = props.match.params.id;
+    const numericID = Number(_.last(urlID.split('-')))
+    const actionData = {id: numericID};
+    this.action = new Action(actionData);
+    this.action.sideloadOrFetch({success: () => {
       Raven.captureBreadcrumb({
         message: 'Form loaded via http',
         category: 'action',
-        data: this.form
+        data: this.action
       });
       this.setState({loading: false});
     }});
 
-    bindToState(this, this.form, {
-      title: 'title',
-      fields: 'fields',
-      action: 'action'
+    bindToState(this, this.action, {
+      name: 'name',
+      description: 'description',
+      date: 'date'
     });
-
-    bindToState(this, this.form.action, {
-      description: 'description'
-    })
 
     this.state = {
       submitted: false,
-      loading: !this.form.sideloaded,
-      action: this.form.action
+      loading: !this.action.sideloaded,
     };
   }
 
@@ -167,17 +157,17 @@ export default class FormView extends React.PureComponent {
       return <Spinner />
     } else {
       const asEvent = {
-        title: this.state.action.name,
+        title: this.state.name,
         location: '',
         description:this.state.description,
-        startTime: this.state.action.date.format(),
-        endTime: this.state.action.date.add('2 hour').format()
+        startTime: this.action.date.format(),
+        endTime: this.action.date.add('2 hour').format()
       };
       if (this.state.submitted) {
         return (
           <Thanks
             asEvent={asEvent}
-            form={this.form}
+            action={this.action}
             onSubmitAnother={() => this.setState({submitted: false})} />
         )
       } else {
@@ -185,7 +175,7 @@ export default class FormView extends React.PureComponent {
           <div>
             <Header />
             <FormInputView
-              form={this.form}
+              action={this.action}
               eventDescription={asEvent}
               onSubmit={() => this.setState({submitted: true})}
             />
