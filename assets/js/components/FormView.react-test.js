@@ -111,8 +111,10 @@ describe('FormView', () => {
     const component = mount(<Router><ThemeProvider><FormView match={urlMatch} /></ThemeProvider></Router>);
     component.find('input[type="text"]').first().simulate('change', {target: {value: 'root@localhost'}});
     component.find('form').simulate('submit');
-    return fetchMock.flush().then(createWaitForElement(Thanks)(component)).then(() => {
+    return fetchMock.flush().then(() => {
       expect(fetchMock.called()).toEqual(true);
+      return createWaitForElement(Thanks)(component);
+    }).then(() => {
       const errors = _.filter(_.map(component.find('p.error'), p => p ? p.text() : ''), v => v != '')
       expect(errors).toHaveLength(0);
       expect(component.find(SignupForm)).toHaveLength(0);
