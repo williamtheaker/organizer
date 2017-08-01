@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Single checkbox field 1`] = `"<div class=\\"ReactForm\\"><label><!-- react-text: 3 -->Field Name<!-- /react-text --><!-- react-text: 4 --> <!-- /react-text --><div class=\\"FormInput\\"><input type=\\"checkbox\\" value=\\"true\\"><div class=\\"FormError\\" style=\\"display: none;\\"></div></div></label></div>"`;
-
-exports[`Single text field 1`] = `"<div class=\\"ReactForm\\"><label><!-- react-text: 3 -->Field Name<!-- /react-text --><!-- react-text: 4 --> <!-- /react-text --><div class=\\"FormInput\\"><input value=\\"\\"><div class=\\"FormError\\" style=\\"display: none;\\"></div></div></label></div>"`;
-
-exports[`Smoke test 1`] = `"<div class=\\"ReactForm\\"></div>"`;
