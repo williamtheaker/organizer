@@ -5,7 +5,13 @@ from __future__ import unicode_literals
 import crm.models
 from django.db import migrations
 import enumfields.fields
+from enumfields import Enum
 
+class FormControlType(Enum):
+   text = 0
+   boolean = 1
+   multiple_choice = 2
+   options = 3
 
 class Migration(migrations.Migration):
 
@@ -22,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='formfield',
             name='control_type',
-            field=enumfields.fields.EnumIntegerField(enum=crm.models.FormControlType),
+            field=enumfields.fields.EnumIntegerField(enum=FormControlType),
         ),
         migrations.AlterField(
             model_name='signup',
