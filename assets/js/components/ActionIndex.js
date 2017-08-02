@@ -11,6 +11,7 @@ import TextTruncate from 'react-text-truncate'
 import ActivistCard from './ActivistCard'
 import { fetchActions } from '../actions'
 import { connect } from 'react-redux'
+import { getActions } from '../selectors'
 
 export const ActionCard = (props) => {
   const total = props.action.signups.length;
@@ -28,7 +29,7 @@ export const ActionCard = (props) => {
     </div>
   )
   const description = props.action.description
-  const recentSignups = _.map(_.slice(props.action.signups.models, 0, 5), signup => (
+  const recentSignups = _.map(_.slice(props.action.signups, 0, 5), signup => (
     <ActivistCard key={signup.cid} activist={signup.activist} />
   ));
   return (
@@ -38,7 +39,7 @@ export const ActionCard = (props) => {
           showExpandableButton={true}
           subtitle={props.action.date.fromNow()}
           title={props.action.name}
-          avatar={<Avatar>{props.action.signups.models.length}</Avatar>} />
+          avatar={<Avatar>{props.action.signups.length}</Avatar>} />
         <CardText expandable={true}>
           <h2>Recent Signups</h2>
           <div className="recent">
@@ -96,13 +97,9 @@ export class ActionIndexBase extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-  const {
-    actions
-  } = state || {actions: {actions:[]}}
-
   return {
-    actions: actions.actions,
-    loading: actions.loading
+    actions: getActions(state),
+    loading: state.actions.loading
   }
 }
 

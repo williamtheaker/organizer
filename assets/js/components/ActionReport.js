@@ -17,11 +17,15 @@ import ActivistCard from './ActivistCard'
 import Spinner from './Spinner'
 import Modal from 'react-modal'
 import DatePicker from 'react-datepicker'
-import { TextField, RaisedButton, ListItem, List, Avatar, Divider, Paper, Card, CardHeader, CardText } from 'material-ui'
+import { RaisedButton, ListItem, List, Avatar, Divider, Paper, Card, CardHeader, CardText } from 'material-ui'
 import HTML5Backend from 'react-dnd-html5-backend'
 
 import { connect } from 'react-redux'
-import { fetchActionIfNeeded, setCurrentAction } from '../actions'
+import { bindActionCreators } from 'redux'
+import { fetchActionIfNeeded, setCurrentAction, updateAndSaveAction } from '../actions'
+import { getCurrentAction } from '../selectors'
+
+import ActionEditor from './ActionEditor'
 
 const collectTarget = (connect, monitor) => ({
   connectDropTarget: connect.dropTarget(),
@@ -389,24 +393,6 @@ class EmailEditor extends React.Component {
   }
 }
 
-const ActionEditor = withState(props => (
-  <div>
-    <h2>
-      <TextField
-        fullWidth={true}
-        floatingLabelText="Title"
-        disabled={!props.loaded}
-        onBlur={(evt) => props.action.save({name: evt.target.value}, {patch: true})}
-        value={props.action.name}
-        onChange={(evt) => props.action.set({name: evt.target.value})} />
-    </h2>
-    <MarkdownEditor
-      value={props.action.description}
-      onChange={v => props.action.description = v}
-      onBlur={() => props.action.save()} />
-  </div>
-))
-
 export class ActionReportBase extends React.Component {
   constructor(props) {
     super(props);
@@ -438,7 +424,7 @@ export class ActionReportBase extends React.Component {
       <div className="action-report">
         <div className="row">
           <div className="small-8 columns">
-            <ActionEditor loaded={this.props.loaded} action={this.props.action} />
+            <ActionEditor />
           </div>
           <div className="small-4 columns">
             <Paper>
@@ -447,11 +433,11 @@ export class ActionReportBase extends React.Component {
                   Date:
                   <DatePicker
                     selected={this.props.action.date}
-                    onChange={(date) => this.props.action.save({date: date}, {patch: true})}/>
+                    onChange={(date) => this.props.updateAndSaveAction(this.props.action.id, {date: date})}/>
                 </ListItem>
                 <ListItem>
                   <Link
-                    to={`/action/${this.model.action.slug}-${this.model.action.id}/`}>
+                    to={`/action/${this.props.action.slug}-${this.model.action.id}/`}>
                     View action on site
                   </Link>
                 </ListItem>
@@ -477,12 +463,14 @@ export class ActionReportBase extends React.Component {
 }
 
 function mapStateToProps(state) {
-  const filter = _.matchesProperty('id', state.currentAction);
-  const action = _.find(state.actions.actions, filter) || new Action();
   return {
-    action: action,
+    action: getCurrentAction(state),
     loaded: !state.actions.loading
   }
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators({updateAndSaveAction}, dispatch);
 }
 
 const ActionReport = connect(mapStateToProps)(ActionReportBase)

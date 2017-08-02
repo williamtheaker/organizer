@@ -9,8 +9,11 @@ import { users, withCurrentUser } from '../UserManager'
 import HTML5Backend from 'react-dnd-html5-backend'
 import { DragDropContext } from 'react-dnd'
 
-import { FlatButton, IconMenu, MenuItem, Avatar, AppBar, Paper } from 'material-ui'
+import { CircularProgress, FlatButton, IconMenu, MenuItem, Avatar, AppBar, Paper } from 'material-ui'
 import gravatarUrl from 'gravatar-url'
+import { connect } from 'react-redux'
+
+import ContentSave from 'material-ui/svg-icons/content/save';
 
 const LoginMenu = withCurrentUser((props) =>  props.logged_in ? (
   <IconMenu
@@ -19,10 +22,24 @@ const LoginMenu = withCurrentUser((props) =>  props.logged_in ? (
   </IconMenu>
 ) : null)
 
+function mapStateToProps(state) {
+  return {
+    saving: state.actions.saving,
+    modified: state.actions.modified
+  }
+}
+
+const LoadingIndicator = connect(mapStateToProps)(props => (
+  props.modified ? 
+    (props.saving ? (<CircularProgress color="#fff" />) : (<ContentSave style={{width: '36px', height: '36px'}}/>)) 
+  : null
+));
+
 const OrganizerAppBar = (props) => (
   <AppBar
     title={<Link to="/organize">Organizer</Link>}
     iconElementLeft={<LoginMenu />}
+    iconElementRight={<LoadingIndicator />}
     className="organizer-app-bar"
   />
 )
