@@ -8,6 +8,9 @@ export const RECEIVE_ACTIONS = 'RECEIVE_ACTIONS'
 export const SAVING_ACTION = 'SAVING_ACTION'
 export const SAVED_ACTION = 'SAVED_ACTION'
 
+export const REQUEST_USER = 'REQUEST_USER'
+export const RECEIVE_USER = 'RECEIVE_USER'
+
 function getAction(state, id) {
   const filter = _.matchesProperty('id', state.currentAction);
   return _.find(state.actions.actions, filter) || {};
@@ -19,6 +22,38 @@ function shouldFetchAction(state, id) {
     return true;
   } else {
     return true;
+  }
+}
+
+function shouldFetchUser(state) {
+  const validID = !!state.auth.user.id;
+  const isLoading = state.auth.loading;
+  if (validID) {
+    return false;
+  } else {
+    return !isLoading;
+  }
+}
+
+export const logout = () => {
+  return dispatch(receiveUser({}));
+}
+
+export const login = () => {
+  return (dispatch, getState) => {
+    if (shouldFetchUser(getState())) {
+      dispatch(loadingUser());
+      const data = {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'X-CSRFToken': csrftoken
+        }
+      };
+      return fetch("/api/users/me/", data).then(response => {
+        return dispatch(receiveUser(response.data));
+      });
+    }
   }
 }
 
@@ -60,6 +95,19 @@ export const updateAction = (id, data) => {
     type: UPDATE_ACTION,
     id: id,
     data: data
+  }
+}
+
+export const receiveUser = (u) => {
+  return {
+    type: RECEIVE_USER,
+    user: u
+  }
+}
+
+export const requestUser = () => {
+  return {
+    type: REQUEST_USER,
   }
 }
 

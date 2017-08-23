@@ -1,10 +1,10 @@
 import { combineReducers } from 'redux'
-import {SAVING_ACTION, SAVED_ACTION, UPDATE_ACTION, SET_CURRENT_ACTION, REQUEST_ACTIONS, RECEIVE_ACTIONS} from '../actions'
+import * as Actions from '../actions'
 import _ from 'lodash'
 
 function currentAction(state = 0, action) {
   switch (action.type) {
-    case SET_CURRENT_ACTION:
+    case Actions.SET_CURRENT_ACTION:
       return action.id;
     default:
       return state
@@ -22,31 +22,31 @@ function applyFor(matcher, func) {
 
 function actions(state = {}, action) {
   switch (action.type) {
-    case UPDATE_ACTION:
+    case Actions.UPDATE_ACTION:
       const updater = a => _.merge({}, a, action.data);
       const idMatch = _.matchesProperty('id', action.id);
       return {
         ...state,
         actions: _.map(state.actions, applyFor(idMatch, updater))
       };
-    case SAVING_ACTION:
+    case Actions.SAVING_ACTION:
       return {
         ...state,
         saving: true,
         modified: true
       };
-    case SAVED_ACTION:
+    case Actions.SAVED_ACTION:
       return {
         ...state,
         saving: false,
         modified: true
       };
-    case REQUEST_ACTIONS:
+    case Actions.REQUEST_ACTIONS:
       return {
         ...state,
         loading: true
       };
-    case RECEIVE_ACTIONS:
+    case Actions.RECEIVE_ACTIONS:
       return {
         ...state,
         loading: false,
@@ -63,6 +63,37 @@ function actions(state = {}, action) {
   }
 }
 
-const organizerApp = combineReducers({actions, currentAction})
+function auth(state = {}, action) {
+  switch (action.type) {
+    case Actions.RECEIVE_USER:
+      return {
+        ...state,
+        loading: false,
+        user: action.user
+      };
+    case Actions.REQUEST_USER:
+      return {
+        ...state,
+        loading: true
+      };
+    default:
+      const hasInline = (typeof CURRENT_USER != 'undefined');
+      const defaultUser = hasInline ? CURRENT_USER : {};
+      if (hasInline) {
+        Raven.captureBreadcrumb({
+          message: 'User loaded from sideload cache',
+          category: 'action',
+          data: CURRENT_USER,
+        });
+      }
+      return {
+        ...state,
+        loading: false,
+        user: defaultUser
+      }
+  }
+}
+
+const organizerApp = combineReducers({actions, currentAction, auth})
 
 export default organizerApp

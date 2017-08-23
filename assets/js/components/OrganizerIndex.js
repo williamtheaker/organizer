@@ -5,7 +5,6 @@ import ActionReport from './ActionReport'
 import ActionIndex from './ActionIndex'
 import AppIndex from './AppIndex'
 
-import { users, withCurrentUser } from '../UserManager'
 import HTML5Backend from 'react-dnd-html5-backend'
 import { DragDropContext } from 'react-dnd'
 
@@ -15,12 +14,27 @@ import { connect } from 'react-redux'
 
 import ContentSave from 'material-ui/svg-icons/content/save';
 
-const LoginMenu = withCurrentUser((props) =>  props.logged_in ? (
+import { getCurrentUser, getLoggedIn } from '../selectors'
+import { logout } from '../actions'
+import { bindActionCreators } from 'redux'
+
+function mapLoginStateToProps(state) {
+  return {
+    logged_in: getLoggedIn(state),
+    current_user: getCurrentUser(state)
+  }
+}
+
+function mapLogoutDispatchToProps(dispatch) {
+  return bindActionCreators({logout}, dispatch);
+}
+
+const LoginMenu = connect(mapLoginStateToProps, mapLogoutDispatchToProps)(props =>  props.logged_in ? (
   <IconMenu
     iconButtonElement={<FlatButton><Avatar src={gravatarUrl(props.current_user.email)}/></FlatButton>} >
-    <MenuItem onClick={() => users.logout()}>Logout</MenuItem>
+    <MenuItem onClick={() => props.logout()}>Logout</MenuItem>
   </IconMenu>
-) : null)
+) : null);
 
 function mapStateToProps(state) {
   return {
@@ -44,7 +58,7 @@ const OrganizerAppBar = (props) => (
   />
 )
 
-const OrganizerIndexBase = (props) => {
+const OrganizerIndex = connect(mapLoginStateToProps)(props => {
   if (props.logged_in) {
     return (
       <div>
@@ -65,7 +79,6 @@ const OrganizerIndexBase = (props) => {
       <AppIndex />
     )
   }
-}
+})
 
-const OrganizerIndex = withCurrentUser(OrganizerIndexBase);
 export default OrganizerIndex;
