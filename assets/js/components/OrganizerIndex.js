@@ -14,7 +14,7 @@ import { connect } from 'react-redux'
 
 import ContentSave from 'material-ui/svg-icons/content/save';
 
-import { getCurrentUser, getLoggedIn } from '../selectors'
+import { getCurrentUser, getLoggedIn, getModified, getSaving } from '../selectors'
 import { logout } from '../actions'
 import { bindActionCreators } from 'redux'
 
@@ -38,8 +38,8 @@ const LoginMenu = connect(mapLoginStateToProps, mapLogoutDispatchToProps)(props 
 
 function mapStateToProps(state) {
   return {
-    saving: state.actions.saving,
-    modified: state.actions.modified
+    saving: getSaving(state),
+    modified: getModified(state)
   }
 }
 

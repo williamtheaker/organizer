@@ -11,8 +11,18 @@ const cookAction = action => {
   }
 }
 
+export const getAllModels = state => state.model.models;
+
+function modelGetter(name, cooker = _.identity) {
+  return createSelector(
+    [getAllModels],
+    models => _.map(_.get(models, name, []), cooker)
+  )
+}
+
+export const getActions = modelGetter('actions', cookAction);
+
 export const getCurrentID = state => state.currentAction;
-export const getActions = state => _.map(state.actions.actions, cookAction);
 
 export const getCurrentAction = createSelector(
   [getCurrentID, getActions],
@@ -27,3 +37,7 @@ export const getLoggedIn = createSelector(
   [getCurrentUser],
   currentUser => !!currentUser.id
 )
+
+export const getModified = state => state.modified
+export const getSaving = state => state.saving
+export const getLoading = state => state.loading

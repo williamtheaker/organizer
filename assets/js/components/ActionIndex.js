@@ -2,7 +2,6 @@ import React from 'react'
 import _ from 'lodash'
 import { Link } from 'react-router-dom'
 import { titles } from '../TitleManager'
-import { bindToCollection, ActionCollection } from '../Model'
 import { RaisedButton, CardActions, Divider, Card, CardHeader, CardText, Avatar } from 'material-ui'
 import { DragDropContext } from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend'
@@ -11,7 +10,7 @@ import TextTruncate from 'react-text-truncate'
 import ActivistCard from './ActivistCard'
 import { fetchActions } from '../actions'
 import { connect } from 'react-redux'
-import { getActions } from '../selectors'
+import { getAllModels, getLoading, getActions } from '../selectors'
 
 export const ActionCard = (props) => {
   const total = props.action.signups.length;
@@ -99,7 +98,7 @@ export class ActionIndexBase extends React.Component {
 const mapStateToProps = (state) => {
   return {
     actions: getActions(state),
-    loading: state.actions.loading
+    loading: getLoading(state),
   }
 }
 

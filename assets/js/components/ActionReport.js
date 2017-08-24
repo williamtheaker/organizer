@@ -23,7 +23,7 @@ import HTML5Backend from 'react-dnd-html5-backend'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { fetchActionIfNeeded, setCurrentAction, updateAndSaveAction } from '../actions'
-import { getCurrentAction } from '../selectors'
+import { getCurrentAction, getLoading } from '../selectors'
 
 import ActionEditor from './ActionEditor'
 
@@ -465,7 +465,7 @@ export class ActionReportBase extends React.Component {
 function mapStateToProps(state) {
   return {
     action: getCurrentAction(state),
-    loaded: !state.actions.loading
+    loaded: !getLoading(state)
   }
 }
 
