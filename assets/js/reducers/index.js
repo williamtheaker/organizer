@@ -3,12 +3,18 @@ import * as Actions from '../actions'
 import _ from 'lodash'
 import model from './model'
 
-function currentAction(state = 0, action) {
+function currentAction(state = {}, action) {
   switch (action.type) {
     case Actions.SET_CURRENT_ACTION:
-      return action.id;
+      return {
+        ...state,
+        id: action.id
+      };
     default:
-      return state
+      return {
+        id: 0,
+        ...state
+      }
   }
 }
 
@@ -28,7 +34,7 @@ function auth(state = {}, action) {
     default:
       const hasInline = (typeof CURRENT_USER != 'undefined');
       const defaultUser = hasInline ? CURRENT_USER : {};
-      if (hasInline) {
+      if (hasInline && !state.user) {
         Raven.captureBreadcrumb({
           message: 'User loaded from sideload cache',
           category: 'action',
@@ -36,9 +42,9 @@ function auth(state = {}, action) {
         });
       }
       return {
-        ...state,
         loading: false,
-        user: defaultUser
+        user: defaultUser,
+        ...state
       }
   }
 }

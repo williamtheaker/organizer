@@ -4,11 +4,11 @@ import MarkdownEditor from './MarkdownEditor'
 import { saveAction, updateAction } from '../actions'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { getCurrentAction, getLoading } from '../selectors'
+import { getActionById, getLoading } from '../selectors'
 
-function mapStateToProps(state) {
+function mapStateToProps(state, props) {
   return {
-    action: getCurrentAction(state),
+    action: getActionById(props.id)(state),
     loaded: !getLoading(state)
   }
 }

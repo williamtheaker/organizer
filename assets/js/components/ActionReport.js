@@ -23,7 +23,7 @@ import HTML5Backend from 'react-dnd-html5-backend'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { fetchActionIfNeeded, setCurrentAction, updateAndSaveAction } from '../actions'
-import { getCurrentAction, getLoading } from '../selectors'
+import { getCurrentAction, getLoading, getActionById, getSignupsByState } from '../selectors'
 
 import ActionEditor from './ActionEditor'
 
@@ -58,7 +58,13 @@ const columnSpec = {
 
 const CardDropTarget = DropTarget(["signup", "activist"], columnSpec, collectTarget)
 
-const ColumnTarget = withState(CardDropTarget((props) => {
+function mapColumnStateToProps(state, props) {
+  return {
+    rows: getSignupsByState(state, props.state)
+  }
+}
+
+const ColumnTarget = connect(mapColumnStateToProps)(withState(CardDropTarget((props) => {
   const myRows = props.model[props.state];
   const cards = _.map(myRows, (row) => (
     <SignupCard
@@ -91,7 +97,7 @@ const ColumnTarget = withState(CardDropTarget((props) => {
       </CSSTransitionGroup>
     </div>
   ))
-}))
+})))
 
 class Column extends React.Component {
   onAddActivistSelected(item) {
@@ -396,27 +402,20 @@ class EmailEditor extends React.Component {
 export class ActionReportBase extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {showEmail: false, description: '', title: ''};
+    this.state = {showEmail: false, title: ''};
     const isNew = this.props.match.params.id == "new"
     const actionData = isNew ? {} : {id: Number(this.props.match.params.id)}
     this.model = new ConversionState({
       action: actionData
     });
 
-    bindToState(this, this.model.action, {
-      description: 'description',
-      name: 'name'
-    })
-
     this.model.update();
   }
 
   componentDidMount() {
     this.model.on('change:loaded', () => this.forceUpdate());
-    this.model.action.on('change:name change:date change:description', () => this.forceUpdate());
-    const { dispatch } = this.props;
-    dispatch(fetchActionIfNeeded(this.props.match.params.id));
-    dispatch(setCurrentAction(this.props.match.params.id));
+    this.props.dispatch(fetchActionIfNeeded(this.props.match.params.id));
+    this.props.dispatch(setCurrentAction(this.props.match.params.id));
   }
 
   render() {
@@ -424,7 +423,7 @@ export class ActionReportBase extends React.Component {
       <div className="action-report">
         <div className="row">
           <div className="small-8 columns">
-            <ActionEditor />
+            <ActionEditor id={this.props.action.id} />
           </div>
           <div className="small-4 columns">
             <Paper>
@@ -470,7 +469,7 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators({updateAndSaveAction}, dispatch);
+  return bindActionCreators({updateAndSaveAction, fetchActionIfNeeded, setCurrentAction}, dispatch);
 }
 
 const ActionReport = connect(mapStateToProps)(ActionReportBase)

@@ -13,14 +13,19 @@ const cookAction = action => {
 
 export const getAllModels = state => state.model.models;
 
-function modelGetter(name, cooker = _.identity) {
+function modelGetter(name, cooker = _.identity, filter = _.constant(true)) {
   return createSelector(
     [getAllModels],
-    models => _.map(_.get(models, name, []), cooker)
+    models => _.filter(_.map(_.get(models, name, []), cooker), filter)
   )
 }
 
 export const getActions = modelGetter('actions', cookAction);
+export const getSignups = modelGetter('signups');
+
+export const getSignupsByState = state => modelGetter('signups', _.matchesProperty('state', state))
+
+export const getActionById = id => modelGetter('actions', _.matchesProperty('id', id));
 
 export const getCurrentID = state => state.currentAction;
 
