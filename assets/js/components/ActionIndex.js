@@ -72,7 +72,7 @@ export class ActionIndexBase extends React.Component {
   }
 
   render() {
-    const actionRows = _.map(this.props.actions, action => <ActionCard action={action} />)
+    const actionRows = _.map(this.props.actions, action => <ActionCard key={action.id} action={action} />)
     const addAction = (
       <Card className="card">
         <Link to={`/organize/action/new`}>

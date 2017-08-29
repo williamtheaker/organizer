@@ -44,7 +44,7 @@ export const savedModel = (name, id) => {
 
 function getModel(name, state, id) {
   const filter = _.matchesProperty('id', state.currentAction);
-  return _.find(_.get(state.model.models, name, []), filter) || {};
+  return _.find(_.get(state.model.models, name, []), filter);
 }
 
 function shouldFetchModel(name, state, id) {
@@ -73,6 +73,7 @@ export const updateAndSaveModel = (name, id) => {
 
 export const fetchOneModel = (name, id) => {
   return dispatch => {
+    dispatch(requestModels(name));
     return fetch('/api/'+name+'/'+id+'/', {credentials: 'include'})
       .then(response => response.json())
       .then(json => {
@@ -81,13 +82,18 @@ export const fetchOneModel = (name, id) => {
   }
 }
 
-export const fetchModels = (name) => {
+export const fetchModels = (name, params = {}) => {
   return dispatch => {
     dispatch(requestModels(name));
-    return fetch('/api/'+name+'/', {credentials: 'include'})
+    const urlParams = new URLSearchParams(Object.entries(params));
+    return fetch('/api/'+name+'/?'+urlParams, {credentials: 'include'})
       .then(response => response.json())
       .then(json => {
         dispatch(receiveModels(name, json.results));
+        if (json.next) {
+          const nextPage = (params.page || 1) + 1;
+          return dispatch(fetchModels(name, {...params, page: nextPage}));
+        }
       });
   }
 }

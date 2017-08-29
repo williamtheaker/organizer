@@ -16,7 +16,19 @@ export const getAllModels = state => state.model.models;
 function modelGetter(name, cooker = _.identity, filter = _.constant(true)) {
   return createSelector(
     [getAllModels],
-    models => _.filter(_.map(_.get(models, name, []), cooker), filter)
+    models => {
+      const myModels = _.get(models, name, []);
+      const cookedModels = _.map(myModels, cooker);
+      const filteredModels = _.filter(cookedModels, filter)
+      return filteredModels;
+    }
+  )
+}
+
+export function modelFinder(name, property, value, cooker = _.identity) {
+  return createSelector(
+    [modelGetter(name, cooker, _.matchesProperty(property, value))],
+    models => models[0]
   )
 }
 
@@ -25,15 +37,14 @@ export const getSignups = modelGetter('signups');
 
 export const getSignupsByState = state => modelGetter('signups', _.matchesProperty('state', state))
 
-export const getActionById = id => modelGetter('actions', _.matchesProperty('id', id));
+export const getActionById = id => modelFinder('actions', 'id', id)
 
-export const getCurrentID = state => state.currentAction;
+export const getCurrentID = state => state.currentAction.id;
 
 export const getCurrentAction = createSelector(
   [getCurrentID, getActions],
-  (currentId, actions) => {
-    const filter = _.matchesProperty('id', currentId);
-    return _.find(actions, filter) || cookAction({});
+  (id, actions) =>  {
+    return _.filter(actions, _.matchesProperty('id', id))[0]
   }
 )
 

@@ -3,6 +3,14 @@ import React from 'react'
 import Gravatar from 'react-gravatar'
 import _ from 'lodash'
 import { Checkbox, CardHeader, Card, Badge, Avatar, ListItem } from 'material-ui'
+import { connect } from 'react-redux'
+import { modelFinder, getLoading } from '../selectors'
+
+function mapStateToProps(state, props) {
+  return {
+    signup: modelFinder('signups', 'id', props.id)(state)
+  }
+}
 
 
 class SignupCardBase extends React.Component {
@@ -44,5 +52,5 @@ const collect = (connect, monitor) => ({
 
 const SignupDragSource = DragSource("signup", dragSpec, collect);
 
-const SignupCard = SignupDragSource(SignupCardBase);
+const SignupCard = SignupDragSource(connect(mapStateToProps)(SignupCardBase));
 export default SignupCard;

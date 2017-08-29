@@ -22,8 +22,8 @@ import HTML5Backend from 'react-dnd-html5-backend'
 
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { fetchActionIfNeeded, setCurrentAction, updateAndSaveAction } from '../actions'
-import { getCurrentAction, getLoading, getActionById, getSignupsByState } from '../selectors'
+import { fetchActionIfNeeded, setCurrentAction, updateAndSaveAction, Model } from '../actions'
+import { getCurrentID, getCurrentAction, getLoading, getSignupsByState } from '../selectors'
 
 import ActionEditor from './ActionEditor'
 
@@ -60,7 +60,7 @@ const CardDropTarget = DropTarget(["signup", "activist"], columnSpec, collectTar
 
 function mapColumnStateToProps(state, props) {
   return {
-    rows: getSignupsByState(state, props.state)
+    rows: getSignupsByState(props.state)(state)
   }
 }
 
@@ -69,7 +69,7 @@ const ColumnTarget = connect(mapColumnStateToProps)(withState(CardDropTarget((pr
   const cards = _.map(myRows, (row) => (
     <SignupCard
       key={row.id}
-      signup={row} />
+      id={row.id} />
   ))
   const selectAll = () => {
     _.each(myRows, r => r.set({selected: true}))
@@ -416,55 +416,60 @@ export class ActionReportBase extends React.Component {
     this.model.on('change:loaded', () => this.forceUpdate());
     this.props.dispatch(fetchActionIfNeeded(this.props.match.params.id));
     this.props.dispatch(setCurrentAction(this.props.match.params.id));
+    this.props.dispatch(Model.fetchModels('signups', {action_id: this.props.match.params.id}));
   }
 
   render() {
-    return (
-      <div className="action-report">
-        <div className="row">
-          <div className="small-8 columns">
-            <ActionEditor id={this.props.action.id} />
+    if (this.props.action) {
+      return (
+        <div className="action-report">
+          <div className="row">
+            <div className="small-8 columns">
+              <ActionEditor id={this.props.action.id} />
+            </div>
+            <div className="small-4 columns">
+              <Paper>
+                <List>
+                  <ListItem>
+                    Date:
+                    <DatePicker
+                      selected={this.props.action.date}
+                      onChange={(date) => this.props.updateAndSaveAction(this.props.action.id, {date: date})}/>
+                  </ListItem>
+                  <ListItem>
+                    <Link
+                      to={`/action/${this.props.action.slug}-${this.model.action.id}/`}>
+                      View action on site
+                    </Link>
+                  </ListItem>
+                </List>
+              </Paper>
+            </div>
           </div>
-          <div className="small-4 columns">
-            <Paper>
-              <List>
-                <ListItem>
-                  Date:
-                  <DatePicker
-                    selected={this.props.action.date}
-                    onChange={(date) => this.props.updateAndSaveAction(this.props.action.id, {date: date})}/>
-                </ListItem>
-                <ListItem>
-                  <Link
-                    to={`/action/${this.props.action.slug}-${this.model.action.id}/`}>
-                    View action on site
-                  </Link>
-                </ListItem>
-              </List>
-            </Paper>
-          </div>
+          <Modal
+            contentLabel="Email Activists"
+            isOpen={this.state.showEmail}
+            onRequestClose={() => this.setState({showEmail: false})}>
+            <EmailEditor onFinished={() => this.setState({showEmail: false})} model={this.model} />
+          </Modal>
+          <RaisedButton
+            label="Email selected activists"
+            onClick={() => this.setState({showEmail: true})}
+            primary={true} />
+          <p />
+          <ActivistConversionUI model={this.model}/>
         </div>
-        <Modal
-          contentLabel="Email Activists"
-          isOpen={this.state.showEmail}
-          onRequestClose={() => this.setState({showEmail: false})}>
-          <EmailEditor onFinished={() => this.setState({showEmail: false})} model={this.model} />
-        </Modal>
-        <RaisedButton
-          label="Email selected activists"
-          onClick={() => this.setState({showEmail: true})}
-          primary={true} />
-        <p />
-        <ActivistConversionUI model={this.model}/>
-      </div>
-    )
+      )
+    } else {
+      return (<Spinner />)
+    }
   }
 }
 
 function mapStateToProps(state) {
   return {
     action: getCurrentAction(state),
-    loaded: !getLoading(state)
+    action_id: getCurrentID(state)
   }
 }
 
