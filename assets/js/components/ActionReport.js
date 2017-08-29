@@ -36,7 +36,7 @@ const columnSpec = {
   drop(props, monitor, component) {
     var {signup, activist} = monitor.getItem();
     if (signup) {
-      signup.save({state: props.state}, {patch: true});
+      props.saveSignup(signup.id, {state: props.state});
     } else if (activist) {
       props.model.rows.create({
         activist: {id: activist.id},
@@ -49,6 +49,7 @@ const columnSpec = {
   canDrop(props, monitor) {
     var {signup, activist} = monitor.getItem();
     if (signup) {
+      console.log(signup.state, props.state);
       return signup.state != props.state;
     } else if (activist) {
       return true;
@@ -60,12 +61,18 @@ const CardDropTarget = DropTarget(["signup", "activist"], columnSpec, collectTar
 
 function mapColumnStateToProps(state, props) {
   return {
-    rows: getSignupsByState(props.state)(state)
+    signups: getSignupsByState(props.state)(state)
   }
 }
 
-const ColumnTarget = connect(mapColumnStateToProps)(withState(CardDropTarget((props) => {
-  const myRows = props.model[props.state];
+function mapColumnDispatchToProps(dispatch, props) {
+  return bindActionCreators({
+    saveSignup: _.partial(Model.updateAndSaveModel, 'signups')
+  }, dispatch)
+}
+
+const ColumnTarget = connect(mapColumnStateToProps, mapColumnDispatchToProps)(CardDropTarget((props) => {
+  const myRows = props.signups;
   const cards = _.map(myRows, (row) => (
     <SignupCard
       key={row.id}
@@ -77,8 +84,8 @@ const ColumnTarget = connect(mapColumnStateToProps)(withState(CardDropTarget((pr
   const selectNone = () => {
     _.each(myRows, r => r.set({selected: false}))
   }
-  const spinner = props.model.loaded ? null : <Spinner />;
-  const totalCards = props.model.rows.length;
+  const spinner = myRows ? null : <Spinner />;
+  const totalCards = props.totalCards;
   const pct = Math.round((totalCards == 0) ? "-" : ((cards.length / totalCards)*100))+"%"
   return props.connectDropTarget((
     <div className={"target "+ (props.isOver ? "hover" : "")}>
@@ -97,7 +104,7 @@ const ColumnTarget = connect(mapColumnStateToProps)(withState(CardDropTarget((pr
       </CSSTransitionGroup>
     </div>
   ))
-})))
+}))
 
 class Column extends React.Component {
   onAddActivistSelected(item) {
@@ -189,7 +196,7 @@ const ConversionState = AmpersandState.extend({
       this.suggestions.fetch({uri: this.action.url + 'suggestions/'});
     }, 50));
   },
-  update() {
+  update(dispatch) {
     if (this.action.isNew()) {
       this.loaded = true;
     } else {
@@ -197,7 +204,10 @@ const ConversionState = AmpersandState.extend({
       return Promise.all([
         this.action.fetch(),
         this.suggestions.fetch({uri: this.action.url + 'suggestions/'}),
-        this.rows.fetch({data: {action_id: this.action.id}})
+        this.rows.fetch({data: {action_id: this.action.id}}),
+        dispatch(fetchActionIfNeeded(this.action.id)),
+        dispatch(setCurrentAction(this.action.id)),
+        dispatch(Model.fetchModels('signups', {action_id: this.action.id}))
       ]).then(() => {
         this.loaded = true;
       })
@@ -229,10 +239,10 @@ const ActivistConversionUI = withState(HTML5DragDropContext((props) => (
     <Divider />
     <p />
     <div className="card-columns">
-      <Column name="Prospective" state="prospective" model={props.model}/>
-      <Column name="Contacted" state="contacted" model={props.model} />
-      <Column name="Confirmed" state="confirmed" model={props.model} />
-      <Column name="Attended" state="attended" model={props.model} />
+      <Column name="Prospective" state="prospective" totalCards={props.model.rows.length} />
+      <Column name="Contacted" state="contacted" totalCards={props.model.rows.length} />
+      <Column name="Confirmed" state="confirmed" totalCards={props.model.rows.length} />
+      <Column name="Attended" state="attended" totalCards={props.model.rows.length} />
     </div>
   </div>
 )))
@@ -409,14 +419,11 @@ export class ActionReportBase extends React.Component {
       action: actionData
     });
 
-    this.model.update();
+    this.model.update(this.props.dispatch);
   }
 
   componentDidMount() {
     this.model.on('change:loaded', () => this.forceUpdate());
-    this.props.dispatch(fetchActionIfNeeded(this.props.match.params.id));
-    this.props.dispatch(setCurrentAction(this.props.match.params.id));
-    this.props.dispatch(Model.fetchModels('signups', {action_id: this.props.match.params.id}));
   }
 
   render() {

@@ -1,3 +1,4 @@
+import { csrftoken } from '../Django'
 export const REQUEST_MODELS = 'REQUEST_MODELS';
 export const RECEIVE_MODELS = 'RECEIVE_MODELS';
 export const UPDATE_MODEL = 'UPDATE_MODEL';
@@ -64,7 +65,7 @@ export const fetchModelIfNeeded = (name, id) => {
   }
 }
 
-export const updateAndSaveModel = (name, id) => {
+export const updateAndSaveModel = (name, id, data) => {
   return dispatch => {
     dispatch(updateModel(name, id, data));
     return dispatch(saveModel(name, id));

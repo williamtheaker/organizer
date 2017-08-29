@@ -35,7 +35,7 @@ export function modelFinder(name, property, value, cooker = _.identity) {
 export const getActions = modelGetter('actions', cookAction);
 export const getSignups = modelGetter('signups');
 
-export const getSignupsByState = state => modelGetter('signups', _.matchesProperty('state', state))
+export const getSignupsByState = state => modelGetter('signups', _.identity, _.matchesProperty('state', state))
 
 export const getActionById = id => modelFinder('actions', 'id', id)
 
