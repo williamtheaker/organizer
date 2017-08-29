@@ -30,6 +30,8 @@ class IntrospectiveViewSet(viewsets.ModelViewSet):
         for param, value in self.request.query_params.iteritems():
             if param == "sort":
                 continue
+            if param == "page":
+                continue
             filterArg &= Q(**{param: value})
         results = super(IntrospectiveViewSet, self).get_queryset().filter(filterArg)
 
