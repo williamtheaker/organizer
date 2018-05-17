@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom'
 import app_css from '../scss/app.scss'
 import 'react-select/dist/react-select.css'
 import 'rc-switch/assets/index.css'
+import 'leaflet/dist/leaflet.css'
+import 'react-leaflet-markercluster/dist/styles.min.css'
 import { Provider } from 'react-redux'
 import { compose, createStore, applyMiddleware } from 'redux'
 

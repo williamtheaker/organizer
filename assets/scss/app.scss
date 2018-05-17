@@ -214,3 +214,18 @@ label.floating {
 @import "action-report.scss";
 @import "spinner.scss";
 @import "form-view.scss";
+
+.membership-map {
+  min-height: 30rem;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  .leaflet-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+}

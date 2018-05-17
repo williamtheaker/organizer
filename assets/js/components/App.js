@@ -14,12 +14,17 @@ const LazyAppIndex = asyncComponent({
   resolve: () => import('./AppIndex').then(m => m.default)
 });
 
+const LazyMapIndex = asyncComponent({
+  resolve: () => import('./MapIndex').then(m => m.default)
+});
+
 const App = (props) => (
   <ThemeProvider>
     <Router>
       <div>
         <Route path="/action/:id" component={FormView}/>
         <Route path="/organize" component={LazyOrganizerIndex} />
+        <Route exact path="/map" component={LazyMapIndex} />
         <Route exact path="/" component={LazyAppIndex} />
         <Footer />
       </div>
