@@ -2,6 +2,9 @@ import { combineReducers } from 'redux'
 import * as Actions from '../actions'
 import _ from 'lodash'
 import model from './model'
+import geocache from './geocache'
+import { persistReducer } from 'redux-persist'
+import storage from 'redux-persist/lib/storage'
 
 function currentAction(state = {}, action) {
   switch (action.type) {
@@ -49,6 +52,11 @@ function auth(state = {}, action) {
   }
 }
 
-const organizerApp = combineReducers({currentAction, auth, model})
+const geocacheConfig = {
+  key: 'geocache',
+  storage: storage
+}
+
+const organizerApp = combineReducers({currentAction, auth, model, geocache: persistReducer(geocacheConfig, geocache)})
 
 export default organizerApp

@@ -32,6 +32,8 @@ export function modelFinder(name, property, value, cooker = _.identity) {
   )
 }
 
+export const getGeocache = state => state.geocache.cache;
+
 export const getActions = modelGetter('actions', cookAction);
 export const getSignups = modelGetter('signups');
 

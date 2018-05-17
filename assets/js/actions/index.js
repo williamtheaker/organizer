@@ -3,6 +3,9 @@ import { csrftoken } from '../Django'
 import * as _model from './model'
 export const Model = _model;
 
+import * as _geocache from './geocache'
+export const Geocache = _geocache
+
 export const REQUEST_USER = 'REQUEST_USER'
 export const RECEIVE_USER = 'RECEIVE_USER'
 export const SET_CURRENT_ACTION = 'SET_CURRENT_ACTION'
