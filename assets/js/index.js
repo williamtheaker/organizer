@@ -17,6 +17,13 @@ import { PersistGate } from 'redux-persist/integration/react'
 
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
+import fontawesome from '@fortawesome/fontawesome'
+import faMapMarker from '@fortawesome/fontawesome-free-solid/faMapMarker'
+import faLock from '@fortawesome/fontawesome-free-solid/faLock'
+import faSpinner from '@fortawesome/fontawesome-free-solid/faSpinner'
+
+fontawesome.library.add(faMapMarker, faLock, faSpinner);
+
 injectTapEventPlugin();
 
 const composer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

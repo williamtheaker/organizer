@@ -17,6 +17,7 @@ import copy from 'copy-to-clipboard'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerRetinaIcon from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import faMapMarker from '@fortawesome/fontawesome-free-solid/faMapMarker'
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -47,7 +48,6 @@ class BoxControl extends MapControl {
 
 class BetterMap extends Map {
   createLeafletElement(props) {
-    console.log('create');
     const ret = super.createLeafletElement(props);
     this.onMapCreated(ret);
     return ret;
@@ -56,12 +56,12 @@ class BetterMap extends Map {
 
 class LocalMap extends BetterMap {
   onMapCreated(map) {
-    console.log('created', map, L);
     var lc = L.control.locate({
       keepCurrentZoomLevel: true,
       locateOptions: {
         enableHighAccuracy: true,
-      }
+      },
+      icon: 'fa fa-map-marker',
     }).addTo(map);
     lc.start();
 
@@ -104,7 +104,6 @@ class MapEngineBase extends React.Component {
   }
 
   updateLocals() {
-    console.log('locating people within %s meters...', this.state.searchRadius);
     const geoChecker = person => !_.isEmpty(person.geo);
     const geoPeople = _.filter(this.props.members, geoChecker);
     const locals = _.filter(geoPeople, p => {
@@ -147,7 +146,7 @@ class MapEngineBase extends React.Component {
 
     const people = _.map(this.state.locals, person => {
       return (
-        <p>{person.Name}</p>
+        <p key={person.id}>{person.Name}</p>
       );
     });
 

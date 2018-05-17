@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from . import models, serializers
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.http import HttpResponse
 import json
 
-
 def index(request, *args, **kwargs):
-    return render(request, 'index.html')
+    return render(request, 'webpack-index.html')
 
 @xframe_options_exempt
 def view_action(request, action_id, action_slug=None):

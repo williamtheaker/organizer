@@ -1,4 +1,5 @@
 import React from 'react'
+import FontAwesomeIcon from 'react-fontawesome'
 
 export default (props) => (
   <footer>
@@ -7,7 +8,7 @@ export default (props) => (
         <p>Made with ❤ in Oakland, CA</p>
       </div>
       <div className="small-6 columns" style={{textAlign: 'right'}}>
-        <p><a href={SLACK_LOGIN_URL}><i className="fa fa-lock"/> Login</a></p>
+        <p><a href={props.slackUrl}><FontAwesomeIcon name='lock' /> Login</a></p>
       </div>
     </div>
   </footer>

@@ -4,6 +4,7 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = merge(config, {
+  mode: 'development',
   entry: {
     webpack: [
       'react-hot-loader/patch',
@@ -22,10 +23,22 @@ module.exports = merge(config, {
     }
   },
   output: {
-    publicPath: 'http://localhost:8080/'
+    publicPath: 'http://localhost:8080/',
+    filename: '[name].js'
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
   ],
+  module: {
+    rules: [
+      {
+        test: /\.s?css$/,
+        use: [
+          'style-loader',
+          'css-loader?importLoaders=1',
+          'sass-loader',
+        ]
+      },
+    ]
+  }
 });
