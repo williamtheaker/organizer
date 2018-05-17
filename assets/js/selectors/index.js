@@ -34,6 +34,18 @@ export function modelFinder(name, property, value, cooker = _.identity) {
 
 export const getGeocache = state => state.geocache.cache;
 
+export const getMembers = createSelector(
+  [modelGetter('members'), getGeocache],
+  (members, geocache) => {
+    return _.map(members, m => {
+      return {
+        ...m,
+        geo: _.get(geocache, m['Full Address'])
+      }
+    });
+  }
+);
+
 export const getActions = modelGetter('actions', cookAction);
 export const getSignups = modelGetter('signups');
 

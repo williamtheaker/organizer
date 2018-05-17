@@ -58,18 +58,18 @@ module.exports = {
                 //use the babel loader 
                 loaders: ['babel-loader'] 
             },
-            {test: /\.s?css$/, loader: ExtractTextPlugin.extract({loader: 'css-loader!sass-loader'})},
-            {test: /\.(png|jpg)$/,
+            {test: /\.s?css$/, use: ExtractTextPlugin.extract({loader: 'css-loader!sass-loader'})},
+            {test: /\.(png|jpe?g|gif|svg)$/,
               loaders: [
-                'file-loader?name=[path][name].[hash].[ext].webp',
-                'webp-loader'
+                'file-loader?name=[path][name].[hash].[ext]',
+                'image-webpack-loader',
               ]
             },
             {test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-              loader: "file-loader?name=[path][name].[hash].[ext]"
+              use: "file-loader?name=[path][name].[hash].[ext]"
             },
-            {test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-              loader: "file-loader?name=[path][name].[hash].[ext]"
+            {test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+              use: "file-loader?name=[path][name].[hash].[ext]"
             }
         ]
     },

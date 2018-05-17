@@ -1,4 +1,6 @@
 import { csrftoken } from '../Django'
+import { fetchGeocodeWithCache } from './geocache';
+import _ from 'lodash';
 export const REQUEST_MODELS = 'REQUEST_MODELS';
 export const RECEIVE_MODELS = 'RECEIVE_MODELS';
 export const UPDATE_MODEL = 'UPDATE_MODEL';
@@ -83,6 +85,16 @@ export const fetchOneModel = (name, id) => {
   }
 }
 
+const preprocessors = {
+  'members': (m, dispatch) => {
+      dispatch(fetchGeocodeWithCache(m.fields['Full Address'], m.fields['Geocode Cache']));
+      return {
+        ...m.fields,
+        id: m.id
+      }
+  }
+}
+
 export const fetchModels = (name, params = {}) => {
   return dispatch => {
     dispatch(requestModels(name));
@@ -90,7 +102,9 @@ export const fetchModels = (name, params = {}) => {
     return fetch('/api/'+name+'/?'+urlParams, {credentials: 'include'})
       .then(response => response.json())
       .then(json => {
-        dispatch(receiveModels(name, json.results));
+        const cooker = _.get(preprocessors, name, _.identity);
+        const cookedResults = _.map(json.results, r => cooker(r, dispatch));
+        dispatch(receiveModels(name, cookedResults));
         if (json.next) {
           const nextPage = (params.page || 1) + 1;
           return dispatch(fetchModels(name, {...params, page: nextPage}));

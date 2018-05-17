@@ -9,6 +9,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@fortawesome/fontawesome": "^1.1.8",
+    "@fortawesome/fontawesome-free-solid": "^5.0.13",
     "ampersand-collection": "^2.0.1",
     "ampersand-events": "^2.0.2",
     "ampersand-fetch": "git://github.com/tdfischer/ampersand-fetch",
