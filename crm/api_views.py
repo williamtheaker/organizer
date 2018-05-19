@@ -4,13 +4,25 @@ from rest_framework.decorators import list_route, detail_route
 import logging
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.template import loader, engines
 from django.db.models import Q, Count, Subquery, OuterRef
 from django.contrib.auth import logout
+from django.conf import settings
 import django_rq
 from emails.models import TemplatedEmail
 from . import models, serializers
 import address
+from airtable import Airtable
+
+class MemberViewSet(viewsets.ViewSet):
+    permission_classes = (AllowAny,)
+    base_name = 'member'
+    def list(self, request, format=None):
+        airtable = Airtable(settings.AIRTABLE_BASE_ID, 'Members and Volunteers', api_key=settings.AIRTABLE_API_KEY)
+        members = airtable.get_all(view='Everyone')
+        return Response({'results': members})
+
 
 class IntrospectiveViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
@@ -195,5 +207,6 @@ views = {
     'actions': ActionViewSet,
     'signups': SignupViewSet,
     'activists': ActivistViewSet,
-    'cities': CityViewSet
+    'cities': CityViewSet,
+    'members': MemberViewSet
 }

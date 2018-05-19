@@ -208,3 +208,6 @@ RAVEN_CONFIG = {
 }
 
 DEFAULT_CHARSET="utf-8"
+
+AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY', None)
+AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID', None)
