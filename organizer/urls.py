@@ -15,9 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from rest_framework import routers
 from django.conf import settings
 from importlib import import_module
+from rest_framework import routers
 
 from crm import views
 
@@ -26,11 +26,14 @@ router = routers.DefaultRouter()
 for app in settings.INSTALLED_APPS:
     try:
         imported = import_module('.'.join((app, 'api_views')))
-    except ImportError:
+    except ImportError, e:
         continue
     if hasattr(imported, 'views'):
         for slug, viewset in imported.views.iteritems():
-            router.register(slug, viewset)
+            if hasattr(viewset, 'base_name'):
+                router.register(slug, viewset, base_name=viewset.base_name)
+            else:
+                router.register(slug, viewset)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
