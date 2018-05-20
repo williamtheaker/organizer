@@ -193,12 +193,8 @@ const MapEngine = connect(mapStateToProps)(MapEngineBase);
 
 const MapIndex = (props) => {
   return (
-    <div className="row the-app">
-      <div className="small-12 columns">
-        <div className="membership-map">
-          <MapEngine />
-        </div>
-      </div>
+    <div className="membership-map">
+      <MapEngine />
     </div>
   );
 }

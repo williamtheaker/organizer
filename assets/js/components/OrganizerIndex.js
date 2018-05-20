@@ -4,6 +4,7 @@ import { Route, Link, Switch } from 'react-router-dom'
 import ActionReport from './ActionReport'
 import ActionIndex from './ActionIndex'
 import AppIndex from './AppIndex'
+import MapIndex from './MapIndex'
 
 import HTML5Backend from 'react-dnd-html5-backend'
 import { DragDropContext } from 'react-dnd'
@@ -58,6 +59,10 @@ const OrganizerAppBar = (props) => (
   />
 )
 
+const OrganizerDashboard = (props) => (
+  <MapIndex />
+)
+
 const OrganizerIndex = connect(mapLoginStateToProps)(props => {
   if (props.logged_in) {
     return (
@@ -66,9 +71,10 @@ const OrganizerIndex = connect(mapLoginStateToProps)(props => {
         <div className="row the-app">
           <div className="small-12 columns">
             <Switch>
+              <Route exact path={`${props.match.url}/map`} component={MapIndex} />
               <Route exact path={`${props.match.url}/action`} component={ActionIndex}/>
               <Route path={`${props.match.url}/action/:id`} component={ActionReport}/>
-              <Route component={ActionIndex}/>
+              <Route component={OrganizerDashboard}/>
             </Switch>
           </div>
         </div>

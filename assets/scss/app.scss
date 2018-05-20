@@ -216,15 +216,14 @@ label.floating {
 @import "form-view.scss";
 
 .membership-map {
-  min-height: 30rem;
-  height: 100%;
+  overflow: hidden;
+  height: calc(100% - 4rem);
   width: 100%;
   position: absolute;
-  top: 0;
   left: 0;
+  top: 4rem;
 
   .leaflet-container {
-    position: relative;
     height: 100%;
     width: 100%;
   }

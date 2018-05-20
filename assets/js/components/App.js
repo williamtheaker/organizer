@@ -14,10 +14,6 @@ const LazyAppIndex = asyncComponent({
   resolve: () => import('./AppIndex').then(m => m.default)
 });
 
-const LazyMapIndex = asyncComponent({
-  resolve: () => import('./MapIndex').then(m => m.default)
-});
-
 const SLACK_LOGIN_URL = window.SLACK_LOGIN_URL || '';
 
 const App = (props) => (
@@ -26,7 +22,6 @@ const App = (props) => (
       <div>
         <Route path="/action/:id" component={FormView}/>
         <Route path="/organize" component={LazyOrganizerIndex} />
-        <Route exact path="/map" component={LazyMapIndex} />
         <Route exact path="/" component={LazyAppIndex} />
         <Footer slackUrl={SLACK_LOGIN_URL} />
       </div>
