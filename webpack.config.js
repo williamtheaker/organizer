@@ -73,7 +73,7 @@ module.exports = {
                 //use the babel loader 
                 use: ['babel-loader']
             },
-            {test: /\.(png|jpe?g|gif|svg)$/,
+            {test: /\.(png|jpe?g|gif)$/,
               use: [
                 'file-loader?name=[path][name].[ext]',
                 'image-webpack-loader',
