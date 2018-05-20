@@ -21,8 +21,9 @@ import fontawesome from '@fortawesome/fontawesome'
 import faMapMarker from '@fortawesome/fontawesome-free-solid/faMapMarker'
 import faLock from '@fortawesome/fontawesome-free-solid/faLock'
 import faSpinner from '@fortawesome/fontawesome-free-solid/faSpinner'
+import faGithub from '@fortawesome/fontawesome-free-brands/faGithub'
 
-fontawesome.library.add(faMapMarker, faLock, faSpinner);
+fontawesome.library.add(faMapMarker, faLock, faSpinner, faGithub);
 
 injectTapEventPlugin();
 
