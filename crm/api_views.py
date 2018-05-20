@@ -16,7 +16,7 @@ import address
 from airtable import Airtable
 
 class MemberViewSet(viewsets.ViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     base_name = 'member'
     def list(self, request, format=None):
         airtable = Airtable(settings.AIRTABLE_BASE_ID, 'Members and Volunteers', api_key=settings.AIRTABLE_API_KEY)

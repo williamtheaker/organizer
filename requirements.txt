@@ -29,3 +29,5 @@ django-redis-cache
 drf-enum-field
 django-dotenv
 airtable-python-wrapper==0.11.0
+social-auth-core
+social-auth-app-django

@@ -48,13 +48,12 @@ INSTALLED_APPS = [
     'markdownify',
     'webpack_loader',
     'raven.contrib.django.raven_compat',
+    'social_django',
     'django_rq',
-    'django_slack_oauth',
     'mailchimp',
     'crm',
     'districting',
     'emails',
-    'slack'
 ]
 
 SLACK_PIPELINES = [
@@ -132,6 +131,11 @@ DATABASES = {
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
 
+AUTHENTICATION_BACKENDS = (
+    'organizer.auth.DiscourseSSOAuth',
+)
+
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -211,3 +215,6 @@ DEFAULT_CHARSET="utf-8"
 
 AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY', None)
 AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID', None)
+
+DISCOURSE_BASE_URL = 'https://discuss.eastbayforeveryone.org/session/sso_provider'
+DISCOURSE_SSO_SECRET = os.environ.get('DISCOURSE_SSO_SECRET', None)

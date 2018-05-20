@@ -41,6 +41,6 @@ urlpatterns = [
     url(r'^crm/', include('crm.urls')),
     url(r'^django-rq/', include('django_rq.urls')),
     url(r'^anymail/', include('anymail.urls')),
-    url(r'^slack/', include('django_slack_oauth.urls')),
+    url(r'', include('social_django.urls', namespace='social')),
     url(r'^', include('crm.urls')),
 ]
